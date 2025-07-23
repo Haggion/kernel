@@ -4,4 +4,8 @@
 # Ada Library Information
 *.ali
 
+*.elf
+
 .DS_Store
+tmp
+limine
