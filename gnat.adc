@@ -1,2 +1,0 @@
-pragma Ristrictions (No_Exception_Propagation);
-pragma Ristrictions (No_Implicit_Dynamic_Code);

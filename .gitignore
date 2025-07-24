@@ -3,6 +3,7 @@
 
 # Ada Library Information
 *.ali
+*.dg
 
 *.elf
 
@@ -13,3 +14,4 @@ limine
 .vscode
 
 runtime/build
+build/*

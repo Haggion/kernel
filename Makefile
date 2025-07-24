@@ -3,48 +3,47 @@ TARGET = tmp/kernel.elf
 GNATMAKE = riscv64-none-elf-gnatmake
 LD = riscv64-none-elf-ld
 AS = riscv64-none-elf-as
-GCC = riscv64-none-elf-gcc
+GCC = riscv64-none-elf-gcc -mcmodel=medany
 
-CFLAGS = -ffreestanding -nostdlib -mno-relax -g
-ADAFLAGS = -gnatg -gnatp -gnatA -nostdlib -nostartfiles -Iruntime/src -I.
+CFLAGS = -ffreestanding -nostdlib -mno-relax -g -mcmodel=medany
+ADAFLAGS = -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib -nostartfiles -Iruntime/src -I. -mcmodel=medany
+# gnatp gnatn
+SRC = src
+TMP = tmp
 
-SRC = src/
-OBJS = tmp/asm/boot.o tmp/c/bss_bounds.o runtime/build/adalib/*.o tmp/asm/io.o tmp/ada/zero_bss.o tmp/ada/io.o tmp/ada/kernel.o
+ADA_SRC = $(wildcard $(SRC)/*.adb)
+ASM_SRC = $(wildcard $(SRC)/*.s)
+C_SRC = $(wildcard $(SRC)/*.c)
 
-all: tmp $(TARGET)
+ADA_OBJ := $(patsubst $(SRC)/%.adb, $(TMP)/ada/%.o, $(ADA_SRC))
+ASM_OBJ := $(patsubst $(SRC)/%.s,   $(TMP)/asm/%.o, $(ASM_SRC))
+C_OBJ   := $(patsubst $(SRC)/%.c,   $(TMP)/c/%.o,   $(C_SRC))
 
-tmp:
-	mkdir -p tmp/asm/
-	mkdir -p tmp/ada/
-	mkdir -p tmp/c/
+OBJS = $(ASM_OBJ) $(C_OBJ) $(ADA_OBJ) runtime/build/adalib/*.o
 
-tmp/asm/boot.o: $(SRC)boot.s
+all: $(TMP) $(TARGET)
+
+$(TMP):
+	mkdir -p $(TMP)/asm/
+	mkdir -p $(TMP)/ada/
+	mkdir -p $(TMP)/c/
+
+$(TMP)/ada/%.o: $(SRC)/%.adb
+	$(GNATMAKE) $< $(ADAFLAGS) -c -o $(@F)
+	mv $(@F) $@
+
+$(TMP)/asm/%.o: $(SRC)/%.s
 	$(AS) -o $@ $<
 
-tmp/asm/io.o: $(SRC)io.s
-	$(AS) -o $@ $<
+$(TMP)/c/%.o: $(SRC)/%.c
+	$(GCC) -c $< -o $@
 
-tmp/ada/kernel.o: $(SRC)kernel.adb
-	$(GNATMAKE) $(SRC)kernel $(ADAFLAGS) -c -o $@
-	mv kernel.o tmp/ada/kernel.o
-
-tmp/ada/io.o: $(SRC)io.adb
-	$(GNATMAKE) $(SRC)io $(ADAFLAGS) -c -o $@
-	mv io.o tmp/ada/io.o
-
-tmp/ada/zero_bss.o: $(SRC)zero_bss.adb
-	$(GNATMAKE) $(SRC)zero_bss $(ADAFLAGS) -c -o $@
-	mv zero_bss.o tmp/ada/zero_bss.o
-
-tmp/c/bss_bounds.o: $(SRC)bss_bounds.c
-	$(GCC) -c $(SRC)bss_bounds.c -o tmp/c/bss_bounds.o
-
-$(TARGET): tmp/c/bss_bounds.o tmp/asm/io.o tmp/ada/zero_bss.o tmp/ada/io.o tmp/ada/kernel.o tmp/asm/boot.o
-	$(LD) -T $(SRC)linker.ld -o $(TARGET) $(OBJS)
+$(TARGET): $(OBJS)
+	$(LD) -T $(SRC)/linker.ld -o $@ $(OBJS)
 
 clean:
-	rm -f *.o *.ali $(TARGET)
-	rm -rf tmp
+	rm -f *.o *.ali *.dg $(TARGET)
+	rm -rf $(TMP)
 	rm -f esp.img image.iso
 
 bin: all
@@ -55,4 +54,7 @@ bin: all
 	riscv64-none-elf-objcopy -O binary $(TARGET) build/kernel.bin
 
 qemu-bin: bin
-	qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio
+	qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M
+
+qemu-elf: all
+	qemu-system-riscv64 -machine virt -bios none -kernel tmp/kernel.elf -serial mon:stdio
