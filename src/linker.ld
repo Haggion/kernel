@@ -4,42 +4,45 @@ PHDRS
 {
 	text PT_LOAD FLAGS(5);
 	data PT_LOAD FLAGS(6);
+	bss PT_LOAD;
+	stack PT_LOAD;
 }
 
 MEMORY {
-    ram (rwx) : ORIGIN = 0xffffffff80000000, LENGTH = 2M
+    ram (rwx) : ORIGIN = 0x80000000, LENGTH = 4M
 }
 
 SECTIONS
 {
-	_start = 0x80000000;
-
-	. = 0xffffffff80000000;
-
+	. = ORIGIN(ram);
+	_start = .;
 	_kernel_start = .;
 
 	.text : ALIGN(0x1000) {
 		KEEP(*(.text.boot))
+		KEEP(*(.text.__gnat_last_chance_handler))
 		*(.text .text.*)
-		*(.rodata .rodata.*)
-	} :text
-	
+		*(.rodata .rodata.*)   /* Include .rodata in .text to avoid split location issues */
+	} > ram :text
+
 	.data : ALIGN(0x1000) {
 		*(.data .data.*)
-	} :data
+	} > ram
 	
 	.bss : ALIGN(0x1000) {
 		PROVIDE(_bss_start = .);
 		*(.bss .bss.* COMMON)
 		PROVIDE(_bss_end = .);
-	} :data
-
-	.stack (NOLOAD) : {
-		. = ALIGN(16);
+	} > ram
+	
+	.stack : ALIGN(16) {
 		_stack_bottom = .;
-		. = . + 0x4000; /* 16KB stack */
+		. = . + 0x10000;
 		_stack_top = .;
 	} > ram
+
+	PROVIDE(_stack_limit = _stack_bottom);
+   PROVIDE(_stack_base  = _stack_top);
 	
 	_kernel_end = .;
 
