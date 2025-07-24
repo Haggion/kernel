@@ -15,7 +15,7 @@ SECTIONS
 	_start = 0x80000000;
 
 	. = 0xffffffff80000000;
-	
+
 	_kernel_start = .;
 
 	.text : ALIGN(0x1000) {
@@ -29,9 +29,9 @@ SECTIONS
 	} :data
 	
 	.bss : ALIGN(0x1000) {
-		__bss_start = .;
+		PROVIDE(_bss_start = .);
 		*(.bss .bss.* COMMON)
-		__bss_end = .;
+		PROVIDE(_bss_end = .);
 	} :data
 
 	.stack (NOLOAD) : {

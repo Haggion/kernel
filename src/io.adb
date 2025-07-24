@@ -6,7 +6,8 @@ package body IO is
 
    procedure Put_Line (Str : String) is
    begin
-      for Index in 1 .. Str'Length loop
+      Put_Char ('h');
+      for Index in 1 .. 2 loop
          Put_Char (Str (Index));
       end loop;
 

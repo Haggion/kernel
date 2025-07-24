@@ -3,6 +3,5 @@ package IO is
    pragma Import (C, Put_Char, "putchar");
 
    procedure Put_Char (Ch : Character);
-
    procedure Put_Line (Str : String);
 end IO;
