@@ -1,7 +1,6 @@
 with System; use System;
 with System.Storage_Elements; use System.Storage_Elements;
 with System.Machine_Code; use System.Machine_Code;
-with IO;
 
 procedure Zero_BSS is
    function Get_BSS_Start return System.Address;
@@ -19,6 +18,5 @@ begin
          Volatile => True);
 
       Pointer := Pointer + 1;
-      IO.Put_Char ('a');
    end loop;
 end Zero_BSS;
