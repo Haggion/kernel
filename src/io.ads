@@ -1,15 +1,25 @@
+with Lines;
+
 package IO is
    procedure Put_Char (Ch : Integer);
    pragma Import (C, Put_Char, "putchar");
 
    procedure Put_Char (Ch : Character);
-   procedure Put_Line (Str : String);
+   procedure Put_String (Str : String;
+      End_With : Character := Character'Val (10));
+   procedure Put_Line (Line : Lines.Line;
+      End_With : Character := Character'Val (10));
    procedure Put_Int (Int : Integer);
+
    procedure New_Line;
 
-   type Digit is range 0 .. 9;
+   function Get_Char return Character;
+   function Get_Line (Show_Typing : Boolean) return Lines.Line;
 
 private
-   procedure Put_Int_Helper (Num : Integer);
-   procedure Put_Digit (Num : Digit);
+   function Last_Pressed return Character;
+   pragma Import (C, Last_Pressed, "getchar");
+   --  Either returns 1 or 0: 1 if true, 0 if false
+   function Data_Ready return Integer;
+   pragma Import (C, Data_Ready, "dataready");
 end IO;

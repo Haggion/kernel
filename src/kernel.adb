@@ -1,14 +1,9 @@
-with IO; use IO;
+with Console;
 
 procedure Kernel is
-   Str : constant String := "Blegh";
 begin
-   Put_Int (52);
-   Put_Line (Str);
-   Put_Line ("Testing testing 123");
-   Put_Int (-3277);
-   New_Line;
-   Put_Int (0);
+   Console.Read_Eval_Print_Loop;
+
    loop
       null;
    end loop;

@@ -1,0 +1,51 @@
+project Kernel is
+   for Languages use ("Ada", "C");
+   for Source_Dirs use ("src"); 
+
+   for Object_Dir use "tmp";
+   for Exec_Dir use "build";
+   
+   for Target use "riscv64-none-elf";
+   for Runtime ("Ada") use "runtime/build";
+
+   package Compiler is
+      for Driver ("Ada") use "riscv64-none-elf-gnatmake";
+      for Driver ("C")   use "riscv64-none-elf-gcc";
+      for Driver ("Assembler") use "riscv64-none-elf-as";
+
+      for Default_Switches ("Ada") use (
+         "-mcmodel=medany",
+         "-nostartfiles",
+         "-gnatn",
+         "-gnatg",
+         "-gnatA",
+         "-gnatD",
+         "-gnatec=gnat.adc",
+         "-nostdlib"
+      );
+      for Default_Switches ("C") use (
+         "-mcmodel=medany",
+         "-ffreestanding",
+         "-nostdlib",
+         "-mno-relax",
+         "-g"
+      );
+   end Compiler;
+
+   for Main use ("src/kernel.adb");
+
+   package Linker is
+      for Driver use "riscv64-none-elf-ld";
+      for Default_Switches ("Ada") use (
+         "-mcmodel=medany",
+         "-nostartfiles",
+         "-gnatn",
+         "-gnatg",
+         "-gnatA",
+         "-gnatD",
+         "-gnatec=gnat.adc",
+         "-nostdlib",
+         "-T src/linker.ld"
+      );
+   end Linker;
+end Kernel;

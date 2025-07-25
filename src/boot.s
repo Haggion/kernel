@@ -24,9 +24,6 @@ _start:
 	j main
 
 main:
-	# ada stuff
-	#call __gnat_initialize
-
 	# start kernel
 	call _kernel_entry
 

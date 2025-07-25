@@ -8,12 +8,14 @@ GCC = riscv64-none-elf-gcc -mcmodel=medany
 CFLAGS = -ffreestanding -nostdlib -mno-relax -g -mcmodel=medany
 ADAFLAGS = -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib -nostartfiles -Iruntime/src -I. -mcmodel=medany
 # gnatp gnatn
+ADAPROJFLAGS = -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib
+
 SRC = src
 TMP = tmp
 
-ADA_SRC = $(wildcard $(SRC)/*.adb)
-ASM_SRC = $(wildcard $(SRC)/*.s)
-C_SRC = $(wildcard $(SRC)/*.c)
+ADA_SRC = $(shell find $(SRC) -type f -name '*.adb')
+ASM_SRC = $(shell find $(SRC) -type f -name '*.s')
+C_SRC = $(shell find $(SRC) -type f -name '*.c')
 
 ADA_OBJ := $(patsubst $(SRC)/%.adb, $(TMP)/ada/%.o, $(ADA_SRC))
 ASM_OBJ := $(patsubst $(SRC)/%.s,   $(TMP)/asm/%.o, $(ASM_SRC))
@@ -22,6 +24,7 @@ C_OBJ   := $(patsubst $(SRC)/%.c,   $(TMP)/c/%.o,   $(C_SRC))
 OBJS = $(ASM_OBJ) $(C_OBJ) $(ADA_OBJ) runtime/build/adalib/*.o
 
 all: $(TMP) $(TARGET)
+#	$(GNATMAKE) -P kernel.gpr
 
 $(TMP):
 	mkdir -p $(TMP)/asm/
@@ -29,13 +32,16 @@ $(TMP):
 	mkdir -p $(TMP)/c/
 
 $(TMP)/ada/%.o: $(SRC)/%.adb
+	mkdir -p $(dir $@)
 	$(GNATMAKE) $< $(ADAFLAGS) -c -o $(@F)
 	mv $(@F) $@
 
 $(TMP)/asm/%.o: $(SRC)/%.s
+	mkdir -p $(dir $@)
 	$(AS) -o $@ $<
 
 $(TMP)/c/%.o: $(SRC)/%.c
+	mkdir -p $(dir $@)
 	$(GCC) -c $< -o $@
 
 $(TARGET): $(OBJS)

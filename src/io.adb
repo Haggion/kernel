@@ -1,4 +1,4 @@
-with System.Unsigned_Types; use System.Unsigned_Types;
+with Images;
 
 package body IO is
    procedure Put_Char (Ch : Character) is
@@ -6,29 +6,30 @@ package body IO is
       Put_Char (Character'Pos (Ch));
    end Put_Char;
 
-   procedure Put_Line (Str : String) is
+   procedure Put_String (Str : String;
+      End_With : Character := Character'Val (10)) is
    begin
-      for Index in Str'Range loop
-         Put_Char (Str (Index));
+      for Ch of Str loop
+         exit when Ch = Character'Val (0);
+         Put_Char (Ch);
       end loop;
 
-      New_Line;
+      Put_Char (End_With);
+   end Put_String;
+
+   procedure Put_Line (Line : Lines.Line;
+      End_With : Character := Character'Val (10)) is
+   begin
+      for Ch of Line loop
+         Put_Char (Ch);
+      end loop;
+
+      Put_Char (End_With);
    end Put_Line;
 
    procedure Put_Int (Int : Integer) is
-      Natural_Component : Unsigned := 100;
    begin
-      if Int < 0 then
-         Natural_Component := Unsigned (-Int);
-         Put_Char ('-');
-      elsif Int = 0 then
-         Put_Char ('0');
-         return;
-      else
-         Natural_Component := Unsigned (Int);
-      end if;
-
-      Put_Int_Helper (Integer (Natural_Component));
+      Put_Line (Images.Integer_Image (Int), Character'Val (0));
    end Put_Int;
 
    procedure New_Line is
@@ -36,38 +37,33 @@ package body IO is
       Put_Char (10);
    end New_Line;
 
-   procedure Put_Int_Helper (Num : Integer) is
+   function Get_Char return Character is
    begin
-      if Num > 9 then
-         Put_Int_Helper (Num / 10);
-      end if;
+      while Data_Ready = 0 loop
+         null;
+      end loop;
 
-      Put_Digit (Digit (Num mod 10));
-   end Put_Int_Helper;
+      return Last_Pressed;
+   end Get_Char;
 
-   procedure Put_Digit (Num : Digit) is
+   function Get_Line (Show_Typing : Boolean) return Lines.Line is
+      Input : Character;
+      LineBuilder : Lines.Line := (others => Character'Val (0));
+      Index : Natural := 1;
    begin
-      case Num is
-         when 0 =>
-            Put_Char ('0');
-         when 1 =>
-            Put_Char ('1');
-         when 2 =>
-            Put_Char ('2');
-         when 3 =>
-            Put_Char ('3');
-         when 4 =>
-            Put_Char ('4');
-         when 5 =>
-            Put_Char ('5');
-         when 6 =>
-            Put_Char ('6');
-         when 7 =>
-            Put_Char ('7');
-         when 8 =>
-            Put_Char ('8');
-         when 9 =>
-            Put_Char ('9');
-      end case;
-   end Put_Digit;
+      Input := Get_Char;
+
+      while Character'Pos (Input) /= 13 and Index <= 256 loop
+         if Show_Typing then
+            Put_Char (Input);
+         end if;
+
+         LineBuilder (Index) := Input;
+         Input := Get_Char;
+
+         Index := Index + 1;
+      end loop;
+
+      return LineBuilder;
+   end Get_Line;
 end IO;
