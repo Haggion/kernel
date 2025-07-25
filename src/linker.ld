@@ -35,9 +35,15 @@ SECTIONS
 		PROVIDE(_bss_end = .);
 	} > ram
 	
+	.heap (NOLOAD) : ALIGN(16) {
+		_heap_start = .;
+		. = . + 0x100000;
+		_heap_end = .;
+	} > ram
+
 	.stack : ALIGN(16) {
 		_stack_bottom = .;
-		. = . + 0x10000;
+		. = . + 0x100000;
 		_stack_top = .;
 	} > ram
 
