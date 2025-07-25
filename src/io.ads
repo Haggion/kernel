@@ -22,4 +22,6 @@ private
    --  Either returns 1 or 0: 1 if true, 0 if false
    function Data_Ready return Integer;
    pragma Import (C, Data_Ready, "dataready");
+
+   procedure Backspace;
 end IO;

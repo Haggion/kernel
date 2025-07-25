@@ -58,12 +58,31 @@ package body IO is
             Put_Char (Input);
          end if;
 
-         LineBuilder (Index) := Input;
-         Input := Get_Char;
+         if Character'Pos (Input) = 127 then
+            if Index > 1 then
+               Index := Index - 1;
+               LineBuilder (Index) := Character'Val (0);
 
-         Index := Index + 1;
+               if Show_Typing then
+                  Backspace;
+               end if;
+            end if;
+         else
+            LineBuilder (Index) := Input;
+            Index := Index + 1;
+         end if;
+
+         Input := Get_Char;
       end loop;
 
       return LineBuilder;
    end Get_Line;
+
+   procedure Backspace is
+      Backspace_Char : constant Integer := 8;
+   begin
+      Put_Char (Backspace_Char);
+      Put_Char (' ');
+      Put_Char (Backspace_Char);
+   end Backspace;
 end IO;
