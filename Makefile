@@ -1,27 +1,29 @@
 CLEAR ?= 0
 
-TARGET = tmp/kernel.elf
+TARGET := tmp/kernel.elf
+SRC := src
+TMP := tmp
 
-GNATMAKE = riscv64-none-elf-gnatmake
-LD = riscv64-none-elf-ld
-AS = riscv64-none-elf-as
-GCC = riscv64-none-elf-gcc -mcmodel=medany
+GNATMAKE := riscv64-none-elf-gnatmake
+LD := riscv64-none-elf-ld
+AS := riscv64-none-elf-as
+GCC := riscv64-none-elf-gcc -mcmodel=medany
 
-CFLAGS = -ffreestanding -nostdlib -mno-relax -g -mcmodel=medany
-ADAFLAGS = -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib -nostartfiles -Iruntime/src -I. -mcmodel=medany
+ADA_DIRS := $(shell find $(SRC) -type f \( -name '*.adb' -o -name '*.ads' \) | xargs -n1 dirname | sort -u)
+ADA_INCLUDES := $(addprefix -I, $(ADA_DIRS))
+
+CFLAGS := -ffreestanding -nostdlib -mno-relax -g -mcmodel=medany
+ADAFLAGS := -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib -nostartfiles -Iruntime/src $(ADA_INCLUDES) -mcmodel=medany
 # gnatp gnatn
-ADAPROJFLAGS = -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib
+ADAPROJFLAGS := -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib
 
-SRC = src
-TMP = tmp
+ADA_SRC := $(shell find $(SRC) -type f -name '*.adb')
+ASM_SRC := $(shell find $(SRC) -type f -name '*.s')
+C_SRC := $(shell find $(SRC) -type f -name '*.c')
 
-ADA_SRC = $(shell find $(SRC) -type f -name '*.adb')
-ASM_SRC = $(shell find $(SRC) -type f -name '*.s')
-C_SRC = $(shell find $(SRC) -type f -name '*.c')
-
-ADA_OBJ := $(patsubst $(SRC)/%.adb, $(TMP)/ada/%.o, $(ADA_SRC))
-ASM_OBJ := $(patsubst $(SRC)/%.s,   $(TMP)/asm/%.o, $(ASM_SRC))
-C_OBJ   := $(patsubst $(SRC)/%.c,   $(TMP)/c/%.o,   $(C_SRC))
+ADA_OBJ := $(foreach f,$(ADA_SRC), $(TMP)/ada/$(subst $(SRC)/,,$(f:.adb=.o)))
+C_OBJ   := $(foreach f,$(C_SRC),	  $(TMP)/c/$(subst $(SRC)/,,$(f:.c=.o)))
+ASM_OBJ := $(foreach f,$(ASM_SRC), $(TMP)/asm/$(subst $(SRC)/,,$(f:.s=.o)))
 
 OBJS = $(ASM_OBJ) $(C_OBJ) $(ADA_OBJ) runtime/build/adalib/*.o
 
@@ -32,18 +34,18 @@ $(TMP):
 	mkdir -p $(TMP)/ada/
 	mkdir -p $(TMP)/c/
 
-$(TMP)/ada/%.o: $(SRC)/%.adb
+$(TMP)/ada/%.o:
 	mkdir -p $(dir $@)
-	$(GNATMAKE) $< $(ADAFLAGS) -c -o $(@F)
+	$(GNATMAKE) $(patsubst %.o,%.adb,$(subst $(TMP)/ada/,src/,$@)) $(ADAFLAGS) -c -o $(@F)
 	mv $(@F) $@
 
-$(TMP)/asm/%.o: $(SRC)/%.s
+$(TMP)/c/%.o:
 	mkdir -p $(dir $@)
-	$(AS) -o $@ $<
+	$(GCC) -c $(patsubst %.o,%.c,$(subst $(TMP)/c/,src/,$@)) -o $@
 
-$(TMP)/c/%.o: $(SRC)/%.c
+$(TMP)/asm/%.o:
 	mkdir -p $(dir $@)
-	$(GCC) -c $< -o $@
+	$(AS) -o $@ $(patsubst %.o,%.s,$(subst $(TMP)/asm/,src/,$@))
 
 $(TARGET): $(OBJS)
 	$(LD) -T $(SRC)/linker.ld -o $@ $(OBJS)
