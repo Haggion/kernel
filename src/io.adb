@@ -27,7 +27,7 @@ package body IO is
       Put_Char (End_With);
    end Put_Line;
 
-   procedure Put_Int (Int : Integer) is
+   procedure Put_Int (Int : Long_Integer) is
    begin
       Put_Line (Images.Integer_Image (Int), Character'Val (0));
    end Put_Int;
@@ -85,4 +85,9 @@ package body IO is
       Put_Char (' ');
       Put_Char (Backspace_Char);
    end Backspace;
+
+   procedure Put_C_String (Line : Lines.Line) is
+   begin
+      Put_Line (Line, Character'Val (0));
+   end Put_C_String;
 end IO;

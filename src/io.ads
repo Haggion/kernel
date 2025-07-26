@@ -9,7 +9,8 @@ package IO is
       End_With : Character := Character'Val (10));
    procedure Put_Line (Line : Lines.Line;
       End_With : Character := Character'Val (10));
-   procedure Put_Int (Int : Integer);
+   procedure Put_Int (Int : Long_Integer);
+   pragma Export (C, Put_Int, "_put_int");
 
    procedure New_Line;
 
@@ -22,6 +23,9 @@ private
    --  Either returns 1 or 0: 1 if true, 0 if false
    function Data_Ready return Integer;
    pragma Import (C, Data_Ready, "dataready");
+
+   procedure Put_C_String (Line : Lines.Line);
+   pragma Export (C, Put_C_String, "_put_cstring");
 
    procedure Backspace;
 end IO;

@@ -1,7 +1,7 @@
 with System.Unsigned_Types; use System.Unsigned_Types;
 
 package body Images is
-   function Integer_Image (Int : Integer) return Lines.Line is
+   function Integer_Image (Int : Long_Integer) return Lines.Line is
       LineBuilder : aliased Lines.Line := (others => Character'Val (0));
       Natural_Component : Unsigned;
    begin
@@ -15,12 +15,14 @@ package body Images is
          Natural_Component := Unsigned (Int);
       end if;
 
-      Integer_Image_Helper (Integer (Natural_Component), LineBuilder'Access);
+      Integer_Image_Helper
+         (Long_Integer (Natural_Component), LineBuilder'Access);
 
       return LineBuilder;
    end Integer_Image;
 
-   procedure Integer_Image_Helper (Num : Integer; Line : access Lines.Line) is
+   procedure Integer_Image_Helper
+      (Num : Long_Integer; Line : access Lines.Line) is
       Ch : Character;
    begin
       if Num > 9 then
