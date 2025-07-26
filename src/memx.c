@@ -72,7 +72,7 @@ void *malloc(size_t size) {
     real_size = (size + 15) & ~15;
 
     heap_block_header *block_to_use = find_next_free_block(real_size);
-    _throw_error("Heap ran out of memory", "memx.c");
+    
     if (block_to_use == 0) {
         _throw_error("Heap ran out of memory", "memx.c.");
         return 0;
