@@ -5,7 +5,8 @@ package body Lines.Scanner is
       Ch : Character
    ) return Scan_Result is
       Index : Line_Index := Start;
-      LineBuilder : aliased Line;
+      Line_Builder : Line;
+      LB_Index : Line_Index := 1;
       Result : Scan_Result;
    begin
       while Index'Valid loop
@@ -19,12 +20,13 @@ package body Lines.Scanner is
             exit;
          end if;
 
-         Append_To_Line (LineBuilder'Access, Input (Index));
+         Line_Builder (LB_Index) := Input (Index);
 
          Index := Index + 1;
+         LB_Index := LB_Index + 1;
       end loop;
 
-      Result.Result := LineBuilder;
+      Result.Result := Line_Builder;
       Result.Scanner_Position := Index + 1;
 
       return Result;
