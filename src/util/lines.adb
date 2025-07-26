@@ -23,17 +23,17 @@ package body Lines is
    --  doesn't work implicitly since strings (usually)
    --  don't have the same length as a line type
    function Make_Line (Text : String) return Line is
-      LineBuilder : Line := (others => Null_Ch);
+      Line_Builder : Line := (others => Null_Ch);
    begin
       for Index in Text'Range loop
-         if Index >= LineBuilder'Length then
-            return LineBuilder;
+         if Index >= Line_Builder'Length then
+            return Line_Builder;
          end if;
 
-         LineBuilder (Index) := Text (Index);
+         Line_Builder (Line_Index (Index)) := Text (Index);
       end loop;
 
-      return LineBuilder;
+      return Line_Builder;
    end Make_Line;
 
    --  replaces the first null character in
@@ -53,4 +53,22 @@ package body Lines is
          Make_Line ("lines.adb")
       );
    end Append_To_Line;
+
+   function Substring (
+      Text : Line;
+      Start_Index : Line_Index;
+      End_Index : Line_Index := 256
+   ) return Line is
+      Line_Builder : Line;
+      LB_Index : Line_Index := 1;
+   begin
+      for Index in Start_Index .. End_Index loop
+         exit when Text (Index) = Null_Ch;
+
+         Line_Builder (LB_Index) := Text (Index);
+         LB_Index := LB_Index + 1;
+      end loop;
+
+      return Line_Builder;
+   end Substring;
 end Lines;

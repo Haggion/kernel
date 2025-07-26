@@ -16,10 +16,10 @@ package body IO is
       Put_Char (End_With);
    end Put_String;
 
-   procedure Put_Line (Line : Lines.Line;
+   procedure Put_Line (Text : Line;
       End_With : Character := Character'Val (10)) is
    begin
-      for Ch of Line loop
+      for Ch of Text loop
          exit when Ch = Character'Val (0);
          Put_Char (Ch);
       end loop;
@@ -46,14 +46,14 @@ package body IO is
       return Last_Pressed;
    end Get_Char;
 
-   function Get_Line (Show_Typing : Boolean) return Lines.Line is
+   function Get_Line (Show_Typing : Boolean) return Line is
       Input : Character;
-      LineBuilder : Lines.Line := (others => Character'Val (0));
-      Index : Natural := 1;
+      LineBuilder : Line := (others => Character'Val (0));
+      Index : Line_Index := 1;
    begin
       Input := Get_Char;
 
-      while Character'Pos (Input) /= 13 and Index <= 256 loop
+      while Character'Pos (Input) /= 13 loop
          if Show_Typing then
             Put_Char (Input);
          end if;
@@ -86,8 +86,8 @@ package body IO is
       Put_Char (Backspace_Char);
    end Backspace;
 
-   procedure Put_C_String (Line : Lines.Line) is
+   procedure Put_C_String (Text : Line) is
    begin
-      Put_Line (Line, Character'Val (0));
+      Put_Line (Text, Character'Val (0));
    end Put_C_String;
 end IO;

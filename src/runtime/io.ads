@@ -1,4 +1,4 @@
-with Lines;
+with Lines; use Lines;
 
 package IO is
    procedure Put_Char (Ch : Integer);
@@ -7,7 +7,7 @@ package IO is
    procedure Put_Char (Ch : Character);
    procedure Put_String (Str : String;
       End_With : Character := Character'Val (10));
-   procedure Put_Line (Line : Lines.Line;
+   procedure Put_Line (Text : Line;
       End_With : Character := Character'Val (10));
    procedure Put_Int (Int : Long_Integer);
    pragma Export (C, Put_Int, "_put_int");
@@ -15,7 +15,7 @@ package IO is
    procedure New_Line;
 
    function Get_Char return Character;
-   function Get_Line (Show_Typing : Boolean) return Lines.Line;
+   function Get_Line (Show_Typing : Boolean) return Line;
 
 private
    function Last_Pressed return Character;
@@ -24,7 +24,7 @@ private
    function Data_Ready return Integer;
    pragma Import (C, Data_Ready, "dataready");
 
-   procedure Put_C_String (Line : Lines.Line);
+   procedure Put_C_String (Text : Line);
    pragma Export (C, Put_C_String, "_put_cstring");
 
    procedure Backspace;
