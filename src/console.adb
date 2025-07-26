@@ -18,6 +18,8 @@ package body Console is
    begin
       if Lines.Are_Lines_Equal (To_Execute, Lines.Make_Line ("keycode")) then
          return Images.Integer_Image (Character'Pos (IO.Get_Char));
+      elsif Lines.Are_Lines_Equal (To_Execute, Lines.Make_Line ("")) then
+         return Lines.Make_Line ("");
       end if;
 
       return Lines.Make_Line ("Unknown command");

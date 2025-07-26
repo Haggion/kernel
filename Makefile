@@ -60,6 +60,7 @@ bin: all
 	riscv64-none-elf-objcopy -O binary $(TARGET) build/kernel.bin
 
 qemu-bin: bin
+	clear
 	qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M
 
 qemu-elf: all

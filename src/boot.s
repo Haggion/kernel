@@ -8,6 +8,8 @@ _start:
 	
 	# zero bss
 	call _zero_bss
+	
+	call initalize_heap
 
 	# make sure stack pointer is in stack
 	la t0, _stack_limit

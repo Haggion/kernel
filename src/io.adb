@@ -10,7 +10,6 @@ package body IO is
       End_With : Character := Character'Val (10)) is
    begin
       for Ch of Str loop
-         exit when Ch = Character'Val (0);
          Put_Char (Ch);
       end loop;
 
@@ -21,6 +20,7 @@ package body IO is
       End_With : Character := Character'Val (10)) is
    begin
       for Ch of Line loop
+         exit when Ch = Character'Val (0);
          Put_Char (Ch);
       end loop;
 
