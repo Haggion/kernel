@@ -1,3 +1,5 @@
+CLEAR ?= 0
+
 TARGET = tmp/kernel.elf
 
 GNATMAKE = riscv64-none-elf-gnatmake
@@ -24,7 +26,6 @@ C_OBJ   := $(patsubst $(SRC)/%.c,   $(TMP)/c/%.o,   $(C_SRC))
 OBJS = $(ASM_OBJ) $(C_OBJ) $(ADA_OBJ) runtime/build/adalib/*.o
 
 all: $(TMP) $(TARGET)
-#	$(GNATMAKE) -P kernel.gpr
 
 $(TMP):
 	mkdir -p $(TMP)/asm/
@@ -60,8 +61,10 @@ bin: all
 	riscv64-none-elf-objcopy -O binary $(TARGET) build/kernel.bin
 
 qemu-bin: bin
+ifeq ($(CLEAR),1)
 	clear
-	qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M
+endif
+	@qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M
 
 qemu-elf: all
 	qemu-system-riscv64 -machine virt -bios none -kernel tmp/kernel.elf -serial mon:stdio
