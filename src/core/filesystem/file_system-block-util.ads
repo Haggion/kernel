@@ -29,4 +29,8 @@ package File_System.Block.Util is
       To : File_Metadata;
       Link : Link_Container
    ) return File_Metadata;
+
+   procedure Write_File (Address : Storage_Address; Data : File_Metadata);
+
+   function Next_Data_Block (Data : Block_Bytes) return Four_Bytes;
 end File_System.Block.Util;

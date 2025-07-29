@@ -5,6 +5,7 @@ with File_System.RAM_Disk;
 with File_System;
 with File_System.Block.Util; use File_System.Block.Util;
 with Bitwise; use Bitwise;
+with Error_Handler;
 
 package body Console is
    Current_Location : File_System.Block.File_Metadata;
@@ -57,12 +58,21 @@ package body Console is
          null;
       elsif Command.Result = Make_Line ("edit") then
          null;
+      elsif Command.Result = Make_Line ("apnd") then
+         Append_To_File (Arguments);
       elsif Command.Result = Make_Line ("read") then
+         Read;
+      elsif Command.Result = Make_Line ("desc") then
          null;
       elsif Command.Result = Make_Line ("new") then
          New_File (Arguments);
       elsif Command.Result = Make_Line ("jmp") then
          Jump_To (Arguments);
+      elsif Command.Result = Make_Line ("del") then
+         null;
+      elsif Command.Result = Make_Line ("size") then
+         Put_Int (Long_Integer (Current_Location.Size));
+         Put_String ("B");
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);
@@ -95,20 +105,14 @@ package body Console is
       Metadata.Links (0).Address := Current_Address;
       Metadata.Links (0).Link_Type := 1;
 
-      File_System.Write_Block (
-         Address,
-         File_System.Block.Make_File_Metadata (Metadata)
-      );
+      Write_File (Address, Metadata);
 
       Current_Location.Links
          (Natural (Current_Location.Num_Links))
          .Address := Address;
       Current_Location.Num_Links := Current_Location.Num_Links + 1;
 
-      File_System.Write_Block (
-         Current_Address,
-         File_System.Block.Make_File_Metadata (Current_Location)
-      );
+      Write_File (Current_Address, Current_Location);
    end New_File;
 
    procedure Jump_To (Arguments : Line) is
@@ -143,13 +147,144 @@ package body Console is
       Container.Link_Type := 1;
       Target.File := Add_Link (Target.File, Container);
 
-      File_System.Write_Block (
-         Target.Address,
-         File_System.Block.Make_File_Metadata (Target.File)
-      );
-      File_System.Write_Block (
-         Current_Address,
-         File_System.Block.Make_File_Metadata (Current_Location)
-      );
+      Write_File (Target.Address, Target.File);
+      Write_File (Current_Address, Current_Location);
    end Link_Files;
+
+   procedure Append_To_File (Text : Line) is
+      Block_Size : constant Natural := File_System.Block_Size;
+      Block_Data_Size : constant Natural := Block_Size - 4;
+      Initial_Size : constant Four_Bytes := Current_Location.Size;
+      Size_Remaining : Four_Bytes := Initial_Size;
+
+      Data : File_System.Block_Bytes;
+      Current_Block : File_System.Storage_Address;
+   begin
+      Current_Location.Size := Initial_Size + Four_Bytes (Length (Text));
+      Current_Block := Current_Location.Data_Start;
+
+      --  deal with edgecase that file has no data blocks yet
+      if Current_Block = 0 then
+         Current_Block := File_System.Get_Free_Address;
+         File_System.Mark_Block_Used (Current_Block);
+
+         Current_Location.Data_Start := Current_Block;
+         Data := (others => 0);
+      else
+         Data := File_System.Get_Block (Current_Block);
+      end if;
+
+      Write_File (Current_Address, Current_Location);
+
+      --  go to the next block with free space
+      while Size_Remaining >= Four_Bytes (Block_Data_Size) loop
+         Size_Remaining := Size_Remaining - Four_Bytes (Block_Data_Size);
+
+         Current_Block := Next_Data_Block (Data);
+
+         --  might need to make a new block to start writing in
+         if Current_Block = 0 then
+            Current_Block := File_System.Get_Free_Address;
+            File_System.Mark_Block_Used (Current_Block);
+
+            --  put address of new block in old block
+            declare
+               Bytes : constant Four_Byte_Array :=
+                  Four_Bytes_To_Bytes (Current_Block);
+            begin
+               Data (Block_Size - 4) := Bytes (0);
+               Data (Block_Size - 3) := Bytes (1);
+               Data (Block_Size - 2) := Bytes (2);
+               Data (Block_Size - 1) := Bytes (3);
+            end;
+         end if;
+
+         Data := File_System.Get_Block (Current_Block);
+      end loop;
+
+      --  start writing text
+      declare
+         Data_Pos : Natural := Natural (Size_Remaining);
+         Text_Pos : Line_Index := 1;
+      begin
+         while Text_Pos'Valid loop
+            if Data_Pos >= Block_Data_Size then
+               declare
+                  New_Block : File_System.Storage_Address;
+               begin
+                  --  make new block
+                  New_Block := File_System.Get_Free_Address;
+                  File_System.Mark_Block_Used (New_Block);
+
+                  --  reference new block in prev block
+                  declare
+                     Bytes : constant Four_Byte_Array :=
+                        Four_Bytes_To_Bytes (New_Block);
+                  begin
+                     Data (Block_Size - 4) := Bytes (0);
+                     Data (Block_Size - 3) := Bytes (1);
+                     Data (Block_Size - 2) := Bytes (2);
+                     Data (Block_Size - 1) := Bytes (3);
+                  end;
+                  --  save prev block
+                  File_System.Write_Block (Current_Block, Data);
+
+                  Data := (others => 0);
+                  Data_Pos := 0;
+
+                  Current_Block := New_Block;
+               end;
+            end if;
+
+            Data (Data_Pos) := Byte (Character'Pos (Text (Text_Pos)));
+
+            Text_Pos := Text_Pos + 1;
+            Data_Pos := Data_Pos + 1;
+
+            exit when Text (Text_Pos) = Character'Val (0);
+         end loop;
+
+         --  save block
+         File_System.Write_Block (Current_Block, Data);
+      end;
+   end Append_To_File;
+
+   procedure Read is
+      Data : File_System.Block_Bytes;
+      Next_Block : File_System.Storage_Address;
+      Size : constant Natural := File_System.Block_Size;
+      Bytes_Read : Four_Bytes := 0;
+      Data_Pos : Natural := 0;
+   begin
+      if Current_Location.Data_Start = 0 then
+         Put_String ("This file has no data");
+         return;
+      end if;
+
+      Data := File_System.Get_Block (Current_Location.Data_Start);
+      Next_Block := Next_Data_Block (Data);
+
+      while Bytes_Read < Current_Location.Size loop
+         --  need to go to next block
+         if Data_Pos >= Size - 4 then
+            if Next_Block = 0 then
+               Error_Handler.String_Throw
+                  ("Expected another block", "console.adb");
+               return;
+            end if;
+
+            Data := File_System.Get_Block (Next_Block);
+            Next_Block := Next_Data_Block (Data);
+
+            Data_Pos := 0;
+         end if;
+
+         Put_Char (Integer (Data (Data_Pos)));
+
+         Data_Pos := Data_Pos + 1;
+         Bytes_Read := Bytes_Read + 1;
+      end loop;
+
+      Put_Char (10);
+   end Read;
 end Console;

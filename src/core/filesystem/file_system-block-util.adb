@@ -131,4 +131,24 @@ package body File_System.Block.Util is
 
       return Result;
    end Add_Link;
+
+   procedure Write_File (Address : Storage_Address; Data : File_Metadata) is
+   begin
+      File_System.Write_Block (
+         Address,
+         File_System.Block.Make_File_Metadata (Data)
+      );
+   end Write_File;
+
+   function Next_Data_Block (Data : Block_Bytes) return Four_Bytes is
+      Size : constant Natural := File_System.Block_Size;
+   begin
+      return Bytes_To_Four_Bytes (
+         Data (Size - 4),
+         Data (Size - 3),
+         Data (Size - 2),
+         Data (Size - 1)
+      );
+   end Next_Data_Block;
+
 end File_System.Block.Util;

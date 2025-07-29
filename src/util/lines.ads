@@ -16,4 +16,6 @@ package Lines is
    ) return Line;
 
    Null_Ch : constant Character := Character'Val (0);
+
+   function Length (Text : Line) return Natural;
 end Lines;

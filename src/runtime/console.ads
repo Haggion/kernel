@@ -9,4 +9,6 @@ private
    procedure New_File (Arguments : Line);
    procedure Jump_To (Arguments : Line);
    procedure Link_Files (Arguments : Line);
+   procedure Append_To_File (Text : Line);
+   procedure Read;
 end Console;

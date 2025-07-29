@@ -71,4 +71,15 @@ package body Lines is
 
       return Line_Builder;
    end Substring;
+
+   function Length (Text : Line) return Natural is
+   begin
+      for Index in Line_Index loop
+         if Text (Index) = Character'Val (0) then
+            return Natural (Index - 1);
+         end if;
+      end loop;
+
+      return 256;
+   end Length;
 end Lines;
