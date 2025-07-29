@@ -46,9 +46,14 @@ package body File_System is
    end Get_Free_Address;
 
    function Root return Block_Bytes is
+   begin
+      return Storage (Root_Address);
+   end Root;
+
+   function Root_Address return Storage_Address is
       FS_Metadata : constant File_System_Metadata :=
          Parse_File_System_Metadata (Storage (1));
    begin
-      return Storage (Four_Bytes (2 + FS_Metadata.Num_Usage_Blocks));
-   end Root;
+      return Four_Bytes (2 + FS_Metadata.Num_Usage_Blocks);
+   end Root_Address;
 end File_System;

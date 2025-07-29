@@ -5,7 +5,7 @@ package body Lines.Scanner is
       Ch : Character
    ) return Scan_Result is
       Index : Line_Index := Start;
-      Line_Builder : Line;
+      Line_Builder : Line := (others => Character'Val (0));
       LB_Index : Line_Index := 1;
       Result : Scan_Result;
    begin

@@ -20,4 +20,5 @@ package File_System is
    function Get_Free_Address return Storage_Address;
 
    function Root return Block_Bytes;
+   function Root_Address return Storage_Address;
 end File_System;

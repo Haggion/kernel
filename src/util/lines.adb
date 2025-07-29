@@ -59,7 +59,7 @@ package body Lines is
       Start_Index : Line_Index;
       End_Index : Line_Index := 256
    ) return Line is
-      Line_Builder : Line;
+      Line_Builder : Line := (others => Character'Val (0));
       LB_Index : Line_Index := 1;
    begin
       for Index in Start_Index .. End_Index loop

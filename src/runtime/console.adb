@@ -33,7 +33,7 @@ package body Console is
       procedure Print_Heap;
       pragma Import (C, Print_Heap, "print_heap");
       Command : Lines.Scanner.Scan_Result;
-      Arguments : Line;
+      Arguments : Line := (others => Character'Val (0));
    begin
       Command := Lines.Scanner.Scan_To_Char (To_Execute, 1, ' ');
       Arguments := Substring (To_Execute, Command.Scanner_Position);
@@ -52,7 +52,7 @@ package body Console is
       elsif Command.Result = Make_Line ("ll") then
          List_Links;
       elsif Command.Result = Make_Line ("cnt") then
-         null;
+         Connect_Files (Arguments);
       elsif Command.Result = Make_Line ("edit") then
          null;
       elsif Command.Result = Make_Line ("read") then
@@ -110,28 +110,20 @@ package body Console is
    end New_File;
 
    procedure Jump_To (Arguments : Line) is
-      Scan : Lines.Scanner.Scan_Result;
-      Curr_FN : Line;
+      Result : Search_Result;
    begin
-      Scan := Lines.Scanner.Scan_To_Char (Arguments, 1, ' ');
+      Result := Get_File_From_Path (Current_Location, Arguments);
 
-      if Current_Location.Num_Links /= 0 then
-         for Index in 0 .. Natural (Current_Location.Num_Links) - 1 loop
-            Curr_FN := Get_File_Name_Line (
-               Current_Location.Links (Index).Address
-            );
-
-            if Scan.Result = Curr_FN then
-               Current_Address := Current_Location.Links (Index).Address;
-               Current_Location := File_System.Block.Parse_File_Metadata (
-                  File_System.Get_Block (Current_Address)
-               );
-
-               return;
-            end if;
-         end loop;
+      if not Result.Found_Result then
+         Put_String ("Path doesn't exist");
+      else
+         Current_Location := Result.File;
+         Current_Address := Result.Address;
       end if;
-
-      Put_String ("Invalid file");
    end Jump_To;
+
+   procedure Connect_Files (Arguments : Line) is
+   begin
+      Put_Line (Arguments);
+   end Connect_Files;
 end Console;
