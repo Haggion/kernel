@@ -8,5 +8,5 @@ private
    procedure List_Links;
    procedure New_File (Arguments : Line);
    procedure Jump_To (Arguments : Line);
-   procedure Connect_Files (Arguments : Line);
+   procedure Link_Files (Arguments : Line);
 end Console;

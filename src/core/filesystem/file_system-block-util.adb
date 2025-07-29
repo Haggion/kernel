@@ -119,4 +119,16 @@ package body File_System.Block.Util is
       Result.Found_Result := False;
       return Result;
    end Get_File_From_Link;
+
+   function Add_Link (
+      To : File_Metadata;
+      Link : Link_Container
+   ) return File_Metadata is
+      Result : File_Metadata := To;
+   begin
+      Result.Links (Natural (To.Num_Links)) := Link;
+      Result.Num_Links := To.Num_Links + 1;
+
+      return Result;
+   end Add_Link;
 end File_System.Block.Util;

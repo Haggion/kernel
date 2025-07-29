@@ -24,4 +24,9 @@ package File_System.Block.Util is
       Current_Location : File_Metadata;
       Path : Line
    ) return Search_Result;
+
+   function Add_Link (
+      To : File_Metadata;
+      Link : Link_Container
+   ) return File_Metadata;
 end File_System.Block.Util;

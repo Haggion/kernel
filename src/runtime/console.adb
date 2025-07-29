@@ -51,8 +51,10 @@ package body Console is
          File_System.RAM_Disk.Print_Disk;
       elsif Command.Result = Make_Line ("ll") then
          List_Links;
-      elsif Command.Result = Make_Line ("cnt") then
-         Connect_Files (Arguments);
+      elsif Command.Result = Make_Line ("lnk") then
+         Link_Files (Arguments);
+      elsif Command.Result = Make_Line ("dlnk") then
+         null;
       elsif Command.Result = Make_Line ("edit") then
          null;
       elsif Command.Result = Make_Line ("read") then
@@ -122,8 +124,32 @@ package body Console is
       end if;
    end Jump_To;
 
-   procedure Connect_Files (Arguments : Line) is
+   procedure Link_Files (Arguments : Line) is
+      Target : Search_Result;
+      Container : File_System.Block.Link_Container;
    begin
-      Put_Line (Arguments);
-   end Connect_Files;
+      Target := Get_File_From_Path (Current_Location, Arguments);
+
+      if not Target.Found_Result then
+         Put_String ("Path doesn't exist");
+         return;
+      end if;
+
+      Container.Address := Target.Address;
+      Container.Link_Type := 0;
+      Current_Location := Add_Link (Current_Location, Container);
+
+      Container.Address := Current_Address;
+      Container.Link_Type := 1;
+      Target.File := Add_Link (Target.File, Container);
+
+      File_System.Write_Block (
+         Target.Address,
+         File_System.Block.Make_File_Metadata (Target.File)
+      );
+      File_System.Write_Block (
+         Current_Address,
+         File_System.Block.Make_File_Metadata (Current_Location)
+      );
+   end Link_Files;
 end Console;
