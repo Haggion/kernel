@@ -62,6 +62,11 @@ bin: all
 
 	riscv64-none-elf-objcopy -O binary $(TARGET) build/kernel.bin
 
+.PHONY: runtime
+runtime:
+	cd runtime; \
+	./setup-runtime.sh
+
 qemu-bin: bin
 ifeq ($(CLEAR),1)
 	clear
