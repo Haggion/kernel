@@ -6,6 +6,7 @@ with File_System;
 with File_System.Block.Util; use File_System.Block.Util;
 with Bitwise; use Bitwise;
 with Error_Handler;
+with Lines.Converter;
 
 package body Console is
    Current_Location : File_System.Block.File_Metadata;
@@ -60,6 +61,12 @@ package body Console is
          null;
       elsif Command.Result = Make_Line ("apnd") then
          Append_To_File (Arguments);
+      elsif Command.Result = Make_Line ("apnd-raw") then
+         Append_To_File (
+            (1 => Character'Val (
+               Lines.Converter.Line_To_Long_Int (Arguments)
+            ), others => Null_Ch)
+         );
       elsif Command.Result = Make_Line ("read") then
          Read;
       elsif Command.Result = Make_Line ("desc") then
