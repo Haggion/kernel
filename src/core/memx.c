@@ -85,7 +85,7 @@ void *malloc(size_t size) {
     // we're storing the block header in the block too, so allocate for that
     size_t real_size = size + HEADER_SIZE;
     // align size to 16
-    real_size = (size + 15) & ~15;
+    real_size = (real_size + 15) & ~15;
 
     heap_block_header *block_to_use = find_next_free_block(real_size);
     
@@ -117,7 +117,7 @@ void *malloc(size_t size) {
 
     remaining_memory->start_address = remaining_addr;
 
-    return (void *)allocation->start_address;
+    return (void *)(allocation->start_address + HEADER_SIZE);
 }
 
 void free(void *pointer) {
