@@ -1,4 +1,4 @@
-with Images;
+with Lines.Converter;
 
 package body IO is
    procedure Put_Char (Ch : Character) is
@@ -29,7 +29,10 @@ package body IO is
 
    procedure Put_Int (Int : Long_Integer) is
    begin
-      Put_Line (Images.Integer_Image (Int), Character'Val (0));
+      Put_Line (
+         Lines.Converter.Long_Int_To_Line (Int),
+         Character'Val (0)
+      );
    end Put_Int;
 
    procedure New_Line is
