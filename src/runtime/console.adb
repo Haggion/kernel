@@ -11,14 +11,18 @@ with System.Machine_Code;
 with Ada.Unchecked_Deallocation;
 
 package body Console is
+   --  Console is always at some position
    Current_Location : File_System.Block.File_Metadata;
-   Current_Address : File_System.Storage_Address := 3;
+   Current_Address : File_System.Storage_Address;
 
    procedure Read_Eval_Print_Loop is
       To_Execute : Lines.Line := (others => Character'Val (0));
    begin
-      Current_Location := File_System.Block.Parse_File_Metadata
-         (File_System.Root);
+      --  By default starting position is the root file
+      Current_Address := File_System.Root_Address;
+      Current_Location := File_System.Block.Parse_File_Metadata (
+         File_System.Get_Block (Current_Address)
+      );
 
       loop
          for Index in Current_Location.Name'Range loop
@@ -54,7 +58,7 @@ package body Console is
       elsif Command.Result = Make_Line ("dr") then
          File_System.RAM_Disk.Print_Disk;
       elsif Command.Result = Make_Line ("ll") then
-         List_Links;
+         List_Links (Arguments);
       elsif Command.Result = Make_Line ("lnk") then
          Link_Files (Arguments);
       elsif Command.Result = Make_Line ("dlnk") then
@@ -71,20 +75,7 @@ package body Console is
             1
          );
       elsif Command.Result = Make_Line ("read") then
-         Read;
-      elsif Command.Result = Make_Line ("read-bytes") then
-         declare
-            Reading : constant File_Bytes_Pointer := Read_Into_Memory (
-               Current_Location
-            );
-         begin
-            for Index in Reading'Range loop
-               Put_Int (Long_Integer (Reading (Index)));
-               Put_Char (' ');
-            end loop;
-
-            Put_Char (10);
-         end;
+         Read (Arguments);
       elsif Command.Result = Make_Line ("desc") then
          null;
       elsif Command.Result = Make_Line ("new") then
@@ -93,9 +84,8 @@ package body Console is
          Jump_To (Arguments);
       elsif Command.Result = Make_Line ("del") then
          null;
-      elsif Command.Result = Make_Line ("size") then
-         Put_Int (Long_Integer (Current_Location.Size));
-         Put_String ("B");
+      elsif Command.Result = Make_Line ("info") then
+         Info (Arguments);
       elsif Command.Result = Make_Line ("run") then
          Run (Arguments);
       elsif Command.Result = Make_Line ("test") then
@@ -106,15 +96,59 @@ package body Console is
       end if;
    end Execute_Command;
 
-   procedure List_Links is
+   procedure List_Links (Arguments : Line) is
+      type Link_Selection_Type is (
+         To, From, Category, Any
+      );
+      for Link_Selection_Type use (
+         To => 0,
+         From => 1,
+         Category => 2,
+         Any => 3
+      );
+      Selection : Link_Selection_Type;
+      CL : File_System.Block.File_Metadata renames Current_Location;
    begin
-      if Current_Location.Num_Links = 0 then
-         Put_String ("This file doesn't link to anything! :P");
+      --  determine link selection from argument
+      if Arguments = Make_Line ("") then
+         Selection := To;
+      elsif Arguments = Make_Line ("to") then
+         Selection := To;
+      elsif Arguments = Make_Line ("from") then
+         Selection := From;
+      elsif Arguments = Make_Line ("category") then
+         Selection := Category;
+      elsif Arguments = Make_Line ("any") then
+         Selection := Any;
+      elsif Arguments = Make_Line ("all") then
+         Selection := Any;
       else
-         for Index in 0 .. Natural (Current_Location.Num_Links) - 1 loop
-            Put_Line (Get_File_Name_Line
-               (Current_Location.Links (Index).Address)
-            );
+         Put_String ("Invalid link type");
+         return;
+      end if;
+
+      --  loop through links
+      if CL.Num_Links = 0 then
+         Put_String ("File has no links");
+      else
+         for Index in 0 .. Natural (CL.Num_Links) - 1 loop
+            --  if link isn't right type, skip to Loop_End
+            if Selection /= Any then
+               declare
+                  Selection_Byte : Byte;
+               begin
+                  Selection_Byte := Byte (
+                     Link_Selection_Type'Pos (Selection)
+                  );
+
+                  if Selection_Byte /= CL.Links (Index).Link_Type then
+                     goto Loop_End;
+                  end if;
+               end;
+            end if;
+
+            Put_Line (Get_File_Name_Line (CL.Links (Index).Address));
+            <<Loop_End>>
          end loop;
       end if;
    end List_Links;
@@ -367,19 +401,53 @@ package body Console is
       To_Proc (Ptr'Address).all;
    end Test;
 
-   procedure Read is
+   procedure Read (Arguments : Line) is
       Reading : File_Bytes_Pointer := Read_Into_Memory (
          Current_Location
       );
       procedure Free is
          new Ada.Unchecked_Deallocation (File_Bytes, File_Bytes_Pointer);
    begin
-      for Index in Reading'Range loop
-         Put_Char (Integer (Reading (Index)));
-      end loop;
+      if Arguments = Make_Line ("") then
+         for Index in Reading'Range loop
+            Put_Char (Integer (Reading (Index)));
+         end loop;
+      elsif Arguments = Make_Line ("bytes") then
+         for Index in Reading'Range loop
+            Put_Int (Long_Integer (Reading (Index)));
+            Put_Char (' ');
+         end loop;
+      else
+         Put_String ("Invalid option", Null_Ch);
+      end if;
 
       Put_Char (10);
 
       Free (Reading);
    end Read;
+
+   procedure Info (Arguments : Line) is
+   begin
+      if Arguments = Make_Line ("size") then
+         Put_Int (Long_Integer (Current_Location.Size));
+         Put_String ("B");
+      elsif Arguments = Make_Line ("addr") then
+         Put_Int (Long_Integer (Current_Address));
+         New_Line;
+      elsif Arguments = Make_Line ("data-addr") then
+         Put_Int (Long_Integer (Current_Location.Data_Start));
+         New_Line;
+      elsif Arguments = Make_Line ("desc-addr") then
+         Put_Int (Long_Integer (Current_Location.Description_Start));
+         New_Line;
+      elsif Arguments = Make_Line ("num-links") then
+         Put_Int (Long_Integer (Current_Location.Num_Links));
+         Put_String (" links");
+      elsif Arguments = Make_Line ("attributes") then
+         Put_Int (Long_Integer (Current_Location.Num_Links));
+         New_Line;
+      else
+         Put_String ("Invalid option");
+      end if;
+   end Info;
 end Console;

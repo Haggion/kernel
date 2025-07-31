@@ -6,7 +6,7 @@ package Console is
 private
    procedure Execute_Command (To_Execute : Line);
 
-   procedure List_Links;
+   procedure List_Links (Arguments : Line);
    procedure New_File (Arguments : Line);
    procedure Jump_To (Arguments : Line);
    procedure Link_Files (Arguments : Line);
@@ -14,7 +14,9 @@ private
    procedure Append_To_File (Text : Line);
    procedure Append_To_File (Text : Line; Len : Natural);
 
-   procedure Read;
+   procedure Read (Arguments : Line);
+
+   procedure Info (Arguments : Line);
 
    procedure Run (Arguments : Line);
    procedure Run_Assembly (Code : File_Bytes_Pointer);
