@@ -2,23 +2,55 @@ with Lines; use Lines;
 with System;
 
 package IO is
-   procedure Put_Char (Ch : Integer);
-   pragma Import (C, Put_Char, "putchar");
+   type Channel is (
+      UART
+   );
 
-   procedure Put_Char (Ch : Character);
-   procedure Put_String (Str : String;
-      End_With : Character := Character'Val (10));
-   procedure Put_Line (Text : Line;
-      End_With : Character := Character'Val (10));
-   procedure Put_Int (Int : Long_Integer);
-   pragma Export (C, Put_Int, "_put_int");
+   type Stream is record
+      Input : Channel;
+      Output : Channel;
+   end record;
 
-   procedure Put_Address (Address : System.Address);
+   UART_Stream : constant Stream := (UART, UART);
 
-   procedure New_Line;
+   procedure UART_Put_Char (Ch : Integer);
+   pragma Import (C, UART_Put_Char, "putchar");
 
-   function Get_Char return Character;
-   function Get_Line (Show_Typing : Boolean) return Line;
+   procedure Put_Char (
+      Ch : Integer;
+      S : Stream := UART_Stream
+   );
+   procedure Put_Char (
+      Ch : Character;
+      S : Stream := UART_Stream
+   );
+   procedure Put_String (
+      Str : String;
+      End_With : Character := Character'Val (10);
+      S : Stream := UART_Stream
+   );
+   procedure Put_Line (
+      Text : Line;
+      End_With : Character := Character'Val (10);
+      S : Stream := UART_Stream
+   );
+   procedure Put_Int (
+      Int : Long_Integer;
+      S : Stream := UART_Stream
+   );
+
+   procedure Put_Address (
+      Address : System.Address;
+      S : Stream := UART_Stream
+   );
+
+   procedure New_Line (S : Stream := UART_Stream);
+
+   function Get_Char (S : Stream := UART_Stream) return Character;
+   function Get_Line (
+      Show_Typing : Boolean;
+      S : Stream := UART_Stream
+   ) return Line;
 
 private
    function Last_Pressed return Character;
@@ -30,5 +62,8 @@ private
    procedure Put_C_String (Text : Line);
    pragma Export (C, Put_C_String, "_put_cstring");
 
-   procedure Backspace;
+   procedure Put_C_Int (Int : Long_Integer);
+   pragma Export (C, Put_C_Int, "_put_int");
+
+   procedure Backspace (S : Stream := UART_Stream);
 end IO;
