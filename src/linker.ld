@@ -3,13 +3,11 @@ ENTRY(_start)
 PHDRS
 {
 	text PT_LOAD FLAGS(5);
-	data PT_LOAD FLAGS(6);
-	bss PT_LOAD;
-	stack PT_LOAD;
+	data PT_LOAD FLAGS(7);
 }
 
 MEMORY {
-    ram (rwx) : ORIGIN = 0x80000000, LENGTH = 32M
+   ram (rwx) : ORIGIN = 0x80000000, LENGTH = 32M
 }
 
 SECTIONS
@@ -19,7 +17,7 @@ SECTIONS
 	_kernel_start = .;
 
 	.text : ALIGN(0x1000) {
-		KEEP(*(.text.boot))
+		KEEP(*(.text._start))
 		KEEP(*(.text.__gnat_last_chance_handler))
 		*(.text .text.*)
 		*(.rodata .rodata.*)   /* Include .rodata in .text to avoid split location issues */
@@ -27,7 +25,7 @@ SECTIONS
 
 	.data : ALIGN(0x1000) {
 		*(.data .data.*)
-	} > ram
+	} > ram :data
 	
 	.bss : ALIGN(0x1000) {
 		PROVIDE(_bss_start = .);

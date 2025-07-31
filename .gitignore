@@ -15,3 +15,5 @@ limine
 
 runtime/build
 build/*
+
+*.log

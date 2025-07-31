@@ -33,4 +33,11 @@ package File_System.Block.Util is
    procedure Write_File (Address : Storage_Address; Data : File_Metadata);
 
    function Next_Data_Block (Data : Block_Bytes) return Four_Bytes;
+
+   type File_Bytes is array (Natural range <>) of Byte;
+   for File_Bytes'Alignment use 4;
+   type File_Bytes_Pointer is access all File_Bytes;
+   function Read_Into_Memory (
+      Current_Location : File_Metadata
+   ) return File_Bytes_Pointer;
 end File_System.Block.Util;

@@ -1,5 +1,6 @@
 with Lines.Scanner;
 with IO; use IO;
+with Error_Handler;
 
 package body File_System.Block.Util is
    function File_Name_To_Line (Name : File_Name) return Line is
@@ -150,5 +151,50 @@ package body File_System.Block.Util is
          Data (Size - 1)
       );
    end Next_Data_Block;
+
+   function Read_Into_Memory (
+      Current_Location : File_Metadata
+   ) return File_Bytes_Pointer is
+      Data : File_System.Block_Bytes;
+      Next_Block : File_System.Storage_Address;
+      Size : constant Natural := File_System.Block_Size;
+      Bytes_Read : Four_Bytes := 0;
+      Data_Pos : Natural := 0;
+
+      Result : File_Bytes_Pointer;
+   begin
+      Result := new File_Bytes (0 .. Integer (Current_Location.Size) - 1);
+
+      if Current_Location.Data_Start = 0 then
+         Put_String ("This file has no data");
+         return Result;
+      end if;
+
+      Data := File_System.Get_Block (Current_Location.Data_Start);
+      Next_Block := Next_Data_Block (Data);
+
+      while Bytes_Read < Current_Location.Size loop
+         --  need to go to next block
+         if Data_Pos >= Size - 4 then
+            if Next_Block = 0 then
+               Error_Handler.String_Throw
+                  ("Expected another block", "console.adb");
+               return Result;
+            end if;
+
+            Data := File_System.Get_Block (Next_Block);
+            Next_Block := Next_Data_Block (Data);
+
+            Data_Pos := 0;
+         end if;
+
+         Result (Natural (Bytes_Read)) := Data (Data_Pos);
+
+         Data_Pos := Data_Pos + 1;
+         Bytes_Read := Bytes_Read + 1;
+      end loop;
+
+      return Result;
+   end Read_Into_Memory;
 
 end File_System.Block.Util;

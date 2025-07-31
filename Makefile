@@ -71,7 +71,7 @@ qemu-bin: bin
 ifeq ($(CLEAR),1)
 	clear
 endif
-	@qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M
+	@qemu-system-riscv64 -machine virt -bios none -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M -d guest_errors,unimp -D qemu.log
 
 qemu-elf: all
 	qemu-system-riscv64 -machine virt -bios none -kernel tmp/kernel.elf -serial mon:stdio

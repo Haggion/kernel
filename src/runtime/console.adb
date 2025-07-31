@@ -3,10 +3,12 @@ with IO; use IO;
 with Lines.Scanner;
 with File_System.RAM_Disk;
 with File_System;
-with File_System.Block.Util; use File_System.Block.Util;
 with Bitwise; use Bitwise;
-with Error_Handler;
 with Lines.Converter;
+with System; use System;
+with Ada.Unchecked_Conversion;
+with System.Machine_Code;
+with Ada.Unchecked_Deallocation;
 
 package body Console is
    Current_Location : File_System.Block.File_Metadata;
@@ -65,10 +67,24 @@ package body Console is
          Append_To_File (
             (1 => Character'Val (
                Lines.Converter.Line_To_Long_Int (Arguments)
-            ), others => Null_Ch)
+            ), others => Null_Ch),
+            1
          );
       elsif Command.Result = Make_Line ("read") then
          Read;
+      elsif Command.Result = Make_Line ("read-bytes") then
+         declare
+            Reading : constant File_Bytes_Pointer := Read_Into_Memory (
+               Current_Location
+            );
+         begin
+            for Index in Reading'Range loop
+               Put_Int (Long_Integer (Reading (Index)));
+               Put_Char (' ');
+            end loop;
+
+            Put_Char (10);
+         end;
       elsif Command.Result = Make_Line ("desc") then
          null;
       elsif Command.Result = Make_Line ("new") then
@@ -80,6 +96,10 @@ package body Console is
       elsif Command.Result = Make_Line ("size") then
          Put_Int (Long_Integer (Current_Location.Size));
          Put_String ("B");
+      elsif Command.Result = Make_Line ("run") then
+         Run (Arguments);
+      elsif Command.Result = Make_Line ("test") then
+         Test;
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);
@@ -159,6 +179,11 @@ package body Console is
    end Link_Files;
 
    procedure Append_To_File (Text : Line) is
+   begin
+      Append_To_File (Text, Length (Text));
+   end Append_To_File;
+
+   procedure Append_To_File (Text : Line; Len : Natural) is
       Block_Size : constant Natural := File_System.Block_Size;
       Block_Data_Size : constant Natural := Block_Size - 4;
       Initial_Size : constant Four_Bytes := Current_Location.Size;
@@ -167,7 +192,7 @@ package body Console is
       Data : File_System.Block_Bytes;
       Current_Block : File_System.Storage_Address;
    begin
-      Current_Location.Size := Initial_Size + Four_Bytes (Length (Text));
+      Current_Location.Size := Initial_Size + Four_Bytes (Len);
       Current_Block := Current_Location.Data_Start;
 
       --  deal with edgecase that file has no data blocks yet
@@ -256,42 +281,105 @@ package body Console is
       end;
    end Append_To_File;
 
-   procedure Read is
-      Data : File_System.Block_Bytes;
-      Next_Block : File_System.Storage_Address;
-      Size : constant Natural := File_System.Block_Size;
-      Bytes_Read : Four_Bytes := 0;
-      Data_Pos : Natural := 0;
+   procedure Run (Arguments : Line) is
+      Argument : Lines.Scanner.Scan_Result;
+      Code : File_Bytes_Pointer;
+
+      procedure Free is
+         new Ada.Unchecked_Deallocation (File_Bytes, File_Bytes_Pointer);
    begin
-      if Current_Location.Data_Start = 0 then
-         Put_String ("This file has no data");
-         return;
+      Argument := Lines.Scanner.Scan_To_Char (Arguments, 1, ' ');
+      Code := Read_Into_Memory (Current_Location);
+
+      if Argument.Result = Make_Line ("shell") then
+         Run_Shell (Code);
+      elsif Argument.Result = Make_Line ("asm") then
+         Run_Assembly (Code);
+      elsif Argument.Result = Make_Line ("") then
+         Put_String ("Must specify type");
+      else
+         Put_String ("Unknown file type");
       end if;
 
-      Data := File_System.Get_Block (Current_Location.Data_Start);
-      Next_Block := Next_Data_Block (Data);
+      Free (Code);
+   end Run;
 
-      while Bytes_Read < Current_Location.Size loop
-         --  need to go to next block
-         if Data_Pos >= Size - 4 then
-            if Next_Block = 0 then
-               Error_Handler.String_Throw
-                  ("Expected another block", "console.adb");
-               return;
-            end if;
-
-            Data := File_System.Get_Block (Next_Block);
-            Next_Block := Next_Data_Block (Data);
-
-            Data_Pos := 0;
+   procedure Run_Shell (Code : File_Bytes_Pointer) is
+      Command : Line := (others => Null_Ch);
+      Command_Pos : Line_Index := 1;
+   begin
+      for Index in Code'Range loop
+         if Code (Index) = 10 then
+            Execute_Command (Command);
+            Command := (others => Null_Ch);
+            Command_Pos := 1;
+         else
+            Command (Command_Pos) := Character'Val (Code (Index));
+            Command_Pos := Command_Pos + 1;
          end if;
+      end loop;
 
-         Put_Char (Integer (Data (Data_Pos)));
+      if Command (1) /= Null_Ch then
+         Execute_Command (Command);
+      end if;
+   end Run_Shell;
 
-         Data_Pos := Data_Pos + 1;
-         Bytes_Read := Bytes_Read + 1;
+   procedure Run_Assembly (Code : File_Bytes_Pointer) is
+      type Proc_Type is access procedure;
+      pragma Convention (C, Proc_Type);
+
+      function To_Proc_Type is
+         new Ada.Unchecked_Conversion (Address, Proc_Type);
+
+      P : constant Proc_Type := To_Proc_Type (Code'Address);
+   begin
+      System.Machine_Code.Asm (
+         "fence.i",
+         Clobber => "memory",
+         Volatile => True
+      );
+
+      P.all;
+   end Run_Assembly;
+
+   procedure Test is
+      type Proc_Type is access procedure;
+      pragma Convention (C, Proc_Type);
+      function To_Proc is
+         new Ada.Unchecked_Conversion (Address, Proc_Type);
+
+      --  Allocate space and write one instruction
+      Ptr : File_Bytes_Pointer := new File_Bytes (0 .. 3);
+   begin
+      Ptr (0) := 16#00#;
+      Ptr (1) := 16#00#;
+      Ptr (2) := 16#67#;
+      Ptr (3) := 16#80#; --  This is `ret`
+
+      --  Fence.i to synchronize the instruction cache
+      System.Machine_Code.Asm (
+         "fence.i",
+         Clobber => "memory",
+         Volatile => True
+      );
+
+      --  Run
+      To_Proc (Ptr'Address).all;
+   end Test;
+
+   procedure Read is
+      Reading : File_Bytes_Pointer := Read_Into_Memory (
+         Current_Location
+      );
+      procedure Free is
+         new Ada.Unchecked_Deallocation (File_Bytes, File_Bytes_Pointer);
+   begin
+      for Index in Reading'Range loop
+         Put_Char (Integer (Reading (Index)));
       end loop;
 
       Put_Char (10);
+
+      Free (Reading);
    end Read;
 end Console;
