@@ -124,7 +124,7 @@ void free(void *pointer) {
     heap_block_header *target = initial_heap_block;
     heap_block_header *last_in_use_block = null;
 
-    uintptr_t target_address = (uintptr_t)pointer;
+    uintptr_t target_address = (uintptr_t)pointer - HEADER_SIZE;
     
     do {
         if (target->start_address >= target_address) {

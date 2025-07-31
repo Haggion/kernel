@@ -1,4 +1,5 @@
 with Lines; use Lines;
+with System;
 
 package IO is
    procedure Put_Char (Ch : Integer);
@@ -11,6 +12,8 @@ package IO is
       End_With : Character := Character'Val (10));
    procedure Put_Int (Int : Long_Integer);
    pragma Export (C, Put_Int, "_put_int");
+
+   procedure Put_Address (Address : System.Address);
 
    procedure New_Line;
 

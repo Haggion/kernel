@@ -1,4 +1,5 @@
 with Lines.Converter;
+with Ada.Unchecked_Conversion;
 
 package body IO is
    procedure Put_Char (Ch : Character) is
@@ -93,4 +94,11 @@ package body IO is
    begin
       Put_Line (Text, Character'Val (0));
    end Put_C_String;
+
+   procedure Put_Address (Address : System.Address) is
+      function Adr_To_Int is new
+         Ada.Unchecked_Conversion (System.Address, Long_Integer);
+   begin
+      Put_Int (Adr_To_Int (Address));
+   end Put_Address;
 end IO;
