@@ -13,6 +13,8 @@ private
 
    procedure Append_To_File (Text : Line);
    procedure Append_To_File (Text : Line; Len : Natural);
+   --  sets the text of a file
+   procedure Write_To_File (Text : Line);
 
    procedure Read (Arguments : Line);
 

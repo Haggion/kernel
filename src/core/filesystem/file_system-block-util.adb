@@ -197,4 +197,101 @@ package body File_System.Block.Util is
       return Result;
    end Read_Into_Memory;
 
+   procedure Write_Data_After_Bytes (
+      Data : File_Bytes_Pointer;
+      Start : Natural;
+      File : in out File_Metadata;
+      File_Address : Storage_Address
+   ) is
+      Block_Data_Size : constant Natural := Block_Size - 4;
+      Initial_Size : constant Four_Bytes := Four_Bytes (Start);
+      Size_Remaining : Four_Bytes := Initial_Size;
+
+      Data_Buffer : Block_Bytes;
+      Current_Block : Storage_Address;
+   begin
+      File.Size := Initial_Size + Four_Bytes (Data'Length);
+      Current_Block := File.Data_Start;
+
+      --  deal with edgecase that file has no data blocks yet
+      if Current_Block = 0 then
+         Current_Block := Get_Free_Address;
+         Mark_Block_Used (Current_Block);
+
+         File.Data_Start := Current_Block;
+         Data_Buffer := (others => 0);
+      else
+         Data_Buffer := Get_Block (Current_Block);
+      end if;
+
+      Write_File (File_Address, File);
+
+      --  go to the next block with free space
+      while Size_Remaining >= Four_Bytes (Block_Data_Size) loop
+         Size_Remaining := Size_Remaining - Four_Bytes (Block_Data_Size);
+
+         Current_Block := Next_Data_Block (Data_Buffer);
+
+         --  might need to make a new block to start writing in
+         if Current_Block = 0 then
+            Current_Block := File_System.Get_Free_Address;
+            File_System.Mark_Block_Used (Current_Block);
+
+            --  put address of new block in old block
+            declare
+               Bytes : constant Four_Byte_Array :=
+                  Four_Bytes_To_Bytes (Current_Block);
+            begin
+               Data_Buffer (Block_Size - 4) := Bytes (0);
+               Data_Buffer (Block_Size - 3) := Bytes (1);
+               Data_Buffer (Block_Size - 2) := Bytes (2);
+               Data_Buffer (Block_Size - 1) := Bytes (3);
+            end;
+         end if;
+
+         Data_Buffer := File_System.Get_Block (Current_Block);
+      end loop;
+
+      --  start writing text
+      declare
+         Buffer_Pos : Natural := Natural (Size_Remaining);
+      begin
+         for Index in Data'Range loop
+            if Buffer_Pos >= Block_Data_Size then
+               declare
+                  New_Block : File_System.Storage_Address;
+               begin
+                  --  make new block
+                  New_Block := File_System.Get_Free_Address;
+                  File_System.Mark_Block_Used (New_Block);
+
+                  --  reference new block in prev block
+                  declare
+                     Bytes : constant Four_Byte_Array :=
+                        Four_Bytes_To_Bytes (New_Block);
+                  begin
+                     Data_Buffer (Block_Size - 4) := Bytes (0);
+                     Data_Buffer (Block_Size - 3) := Bytes (1);
+                     Data_Buffer (Block_Size - 2) := Bytes (2);
+                     Data_Buffer (Block_Size - 1) := Bytes (3);
+                  end;
+                  --  save prev block
+                  File_System.Write_Block (Current_Block, Data_Buffer);
+
+                  Data_Buffer := (others => 0);
+                  Buffer_Pos := 0;
+
+                  Current_Block := New_Block;
+               end;
+            end if;
+
+            Data_Buffer (Buffer_Pos) := Data (Index);
+
+            Buffer_Pos := Buffer_Pos + 1;
+         end loop;
+
+         --  save block
+         File_System.Write_Block (Current_Block, Data_Buffer);
+      end;
+   end Write_Data_After_Bytes;
 end File_System.Block.Util;

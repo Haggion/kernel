@@ -8,7 +8,6 @@ with Lines.Converter;
 with System; use System;
 with Ada.Unchecked_Conversion;
 with System.Machine_Code;
-with Ada.Unchecked_Deallocation;
 
 package body Console is
    --  Console is always at some position
@@ -74,6 +73,8 @@ package body Console is
             ), others => Null_Ch),
             1
          );
+      elsif Command.Result = Make_Line ("write") then
+         Write_To_File (Arguments);
       elsif Command.Result = Make_Line ("read") then
          Read (Arguments);
       elsif Command.Result = Make_Line ("desc") then
@@ -218,109 +219,41 @@ package body Console is
    end Append_To_File;
 
    procedure Append_To_File (Text : Line; Len : Natural) is
-      Block_Size : constant Natural := File_System.Block_Size;
-      Block_Data_Size : constant Natural := Block_Size - 4;
-      Initial_Size : constant Four_Bytes := Current_Location.Size;
-      Size_Remaining : Four_Bytes := Initial_Size;
-
-      Data : File_System.Block_Bytes;
-      Current_Block : File_System.Storage_Address;
+      Data : File_Bytes_Pointer;
    begin
-      Current_Location.Size := Initial_Size + Four_Bytes (Len);
-      Current_Block := Current_Location.Data_Start;
-
-      --  deal with edgecase that file has no data blocks yet
-      if Current_Block = 0 then
-         Current_Block := File_System.Get_Free_Address;
-         File_System.Mark_Block_Used (Current_Block);
-
-         Current_Location.Data_Start := Current_Block;
-         Data := (others => 0);
-      else
-         Data := File_System.Get_Block (Current_Block);
-      end if;
-
-      Write_File (Current_Address, Current_Location);
-
-      --  go to the next block with free space
-      while Size_Remaining >= Four_Bytes (Block_Data_Size) loop
-         Size_Remaining := Size_Remaining - Four_Bytes (Block_Data_Size);
-
-         Current_Block := Next_Data_Block (Data);
-
-         --  might need to make a new block to start writing in
-         if Current_Block = 0 then
-            Current_Block := File_System.Get_Free_Address;
-            File_System.Mark_Block_Used (Current_Block);
-
-            --  put address of new block in old block
-            declare
-               Bytes : constant Four_Byte_Array :=
-                  Four_Bytes_To_Bytes (Current_Block);
-            begin
-               Data (Block_Size - 4) := Bytes (0);
-               Data (Block_Size - 3) := Bytes (1);
-               Data (Block_Size - 2) := Bytes (2);
-               Data (Block_Size - 1) := Bytes (3);
-            end;
-         end if;
-
-         Data := File_System.Get_Block (Current_Block);
+      Data := new File_Bytes (0 .. Len - 1);
+      for Index in 0 .. Len - 1 loop
+         Data (Index) := Character'Pos (Text (Line_Index (Index + 1)));
       end loop;
 
-      --  start writing text
-      declare
-         Data_Pos : Natural := Natural (Size_Remaining);
-         Text_Pos : Line_Index := 1;
-      begin
-         while Text_Pos'Valid loop
-            if Data_Pos >= Block_Data_Size then
-               declare
-                  New_Block : File_System.Storage_Address;
-               begin
-                  --  make new block
-                  New_Block := File_System.Get_Free_Address;
-                  File_System.Mark_Block_Used (New_Block);
+      Write_Data_After_Bytes (
+         Data, Natural (Current_Location.Size),
+         Current_Location, Current_Address
+      );
 
-                  --  reference new block in prev block
-                  declare
-                     Bytes : constant Four_Byte_Array :=
-                        Four_Bytes_To_Bytes (New_Block);
-                  begin
-                     Data (Block_Size - 4) := Bytes (0);
-                     Data (Block_Size - 3) := Bytes (1);
-                     Data (Block_Size - 2) := Bytes (2);
-                     Data (Block_Size - 1) := Bytes (3);
-                  end;
-                  --  save prev block
-                  File_System.Write_Block (Current_Block, Data);
-
-                  Data := (others => 0);
-                  Data_Pos := 0;
-
-                  Current_Block := New_Block;
-               end;
-            end if;
-
-            Data (Data_Pos) := Byte (Character'Pos (Text (Text_Pos)));
-
-            Text_Pos := Text_Pos + 1;
-            Data_Pos := Data_Pos + 1;
-
-            exit when Text (Text_Pos) = Character'Val (0);
-         end loop;
-
-         --  save block
-         File_System.Write_Block (Current_Block, Data);
-      end;
+      Free (Data);
    end Append_To_File;
+
+   procedure Write_To_File (Text : Line) is
+      Data : File_Bytes_Pointer;
+      Len : constant Natural := Length (Text);
+   begin
+      Data := new File_Bytes (0 .. Len - 1);
+      for Index in 0 .. Len - 1 loop
+         Data (Index) := Character'Pos (Text (Line_Index (Index + 1)));
+      end loop;
+
+      Write_Data_After_Bytes (
+         Data, 0,
+         Current_Location, Current_Address
+      );
+
+      Free (Data);
+   end Write_To_File;
 
    procedure Run (Arguments : Line) is
       Argument : Lines.Scanner.Scan_Result;
       Code : File_Bytes_Pointer;
-
-      procedure Free is
-         new Ada.Unchecked_Deallocation (File_Bytes, File_Bytes_Pointer);
    begin
       Argument := Lines.Scanner.Scan_To_Char (Arguments, 1, ' ');
       Code := Read_Into_Memory (Current_Location);
@@ -405,8 +338,6 @@ package body Console is
       Reading : File_Bytes_Pointer := Read_Into_Memory (
          Current_Location
       );
-      procedure Free is
-         new Ada.Unchecked_Deallocation (File_Bytes, File_Bytes_Pointer);
    begin
       if Arguments = Make_Line ("") then
          for Index in Reading'Range loop

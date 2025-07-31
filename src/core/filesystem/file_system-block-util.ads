@@ -1,4 +1,5 @@
 with Lines; use Lines;
+with Ada.Unchecked_Deallocation;
 
 package File_System.Block.Util is
    type Search_Result is record
@@ -40,4 +41,15 @@ package File_System.Block.Util is
    function Read_Into_Memory (
       Current_Location : File_Metadata
    ) return File_Bytes_Pointer;
+
+   --  this procedure writes data into the current location file
+   procedure Write_Data_After_Bytes (
+      Data : File_Bytes_Pointer;
+      Start : Natural;
+      File : in out File_Metadata;
+      File_Address : Storage_Address
+   );
+
+   procedure Free is new
+      Ada.Unchecked_Deallocation (File_Bytes, File_Bytes_Pointer);
 end File_System.Block.Util;
