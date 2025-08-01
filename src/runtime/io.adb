@@ -85,11 +85,7 @@ package body IO is
    begin
       case S.Input is
          when UART =>
-            while Data_Ready = 0 loop
-               null;
-            end loop;
-
-            return Last_Pressed;
+            return UART_Get_Char;
       end case;
    end Get_Char;
 

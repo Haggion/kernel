@@ -14,7 +14,7 @@ package IO is
    UART_Stream : constant Stream := (UART, UART);
 
    procedure UART_Put_Char (Ch : Integer);
-   pragma Import (C, UART_Put_Char, "putchar");
+   pragma Import (C, UART_Put_Char, "uart_put_char");
 
    procedure Put_Char (
       Ch : Integer;
@@ -53,11 +53,8 @@ package IO is
    ) return Line;
 
 private
-   function Last_Pressed return Character;
-   pragma Import (C, Last_Pressed, "getchar");
-   --  Either returns 1 or 0: 1 if true, 0 if false
-   function Data_Ready return Integer;
-   pragma Import (C, Data_Ready, "dataready");
+   function UART_Get_Char return Character;
+   pragma Import (C, UART_Get_Char, "uart_get_char");
 
    procedure Put_C_String (Text : Line);
    pragma Export (C, Put_C_String, "_put_cstring");
