@@ -12,7 +12,7 @@ MEMORY {
 
 SECTIONS
 {
-	. = ORIGIN(ram);
+	. = ALIGN(0x1000);
 	_start = .;
 	_kernel_start = .;
 

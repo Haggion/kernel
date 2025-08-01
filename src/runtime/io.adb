@@ -31,7 +31,11 @@ package body IO is
          Put_Char (Ch, S);
       end loop;
 
-      Put_Char (End_With, S);
+      if End_With = Character'Val (10) then
+         New_Line (S);
+      else
+         Put_Char (End_With, S);
+      end if;
    end Put_String;
 
    procedure Put_Line (
@@ -45,7 +49,11 @@ package body IO is
          Put_Char (Ch, S);
       end loop;
 
-      Put_Char (End_With, S);
+      if End_With = Character'Val (10) then
+         New_Line (S);
+      else
+         Put_Char (End_With, S);
+      end if;
    end Put_Line;
 
    procedure Put_Int (
@@ -67,6 +75,9 @@ package body IO is
 
    procedure New_Line (S : Stream := UART_Stream) is
    begin
+      --  carriage return (\r)
+      Put_Char (13, S);
+      --  line feed (\n)
       Put_Char (10, S);
    end New_Line;
 
