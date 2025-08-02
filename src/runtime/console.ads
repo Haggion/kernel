@@ -24,4 +24,6 @@ private
    procedure Run_Assembly (Code : File_Bytes_Pointer);
    procedure Run_Shell (Code : File_Bytes_Pointer);
    procedure Test;
+
+   procedure XHCI (Arguments : Line);
 end Console;

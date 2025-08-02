@@ -91,6 +91,15 @@ package body Console is
          Run (Arguments);
       elsif Command.Result = Make_Line ("test") then
          Test;
+      elsif Command.Result = Make_Line ("xhci") then
+         XHCI (Arguments);
+      elsif Command.Result = Make_Line ("shutdown") then
+         declare
+            procedure Shutdown;
+            pragma Import (C, Shutdown, "shutdown");
+         begin
+            Shutdown;
+         end;
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);
@@ -381,4 +390,24 @@ package body Console is
          Put_String ("Invalid option");
       end if;
    end Info;
+
+   procedure XHCI (Arguments : Line) is
+      function XHCI_Register (Offset : Integer) return Integer;
+      pragma Import (C, XHCI_Register, "xhci_register");
+   begin
+      if Arguments = Make_Line ("caplength") then
+         Put_Int (Long_Integer (XHCI_Register (0)));
+         New_Line;
+      elsif Arguments = Make_Line ("hciversion") then
+         Put_Int (Long_Integer (XHCI_Register (2)));
+         New_Line;
+      elsif Arguments = Make_Line ("usbcmd") then
+         Put_Int (Long_Integer (
+            XHCI_Register (XHCI_Register (0))
+         ));
+         New_Line;
+      else
+         Put_String ("Invalid option");
+      end if;
+   end XHCI;
 end Console;

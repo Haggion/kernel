@@ -12,15 +12,13 @@ MEMORY {
 
 SECTIONS
 {
-	. = ALIGN(0x1000);
-	_start = .;
-	_kernel_start = .;
+	. = ORIGIN(ram);
 
 	.text : ALIGN(0x1000) {
 		KEEP(*(.text._start))
 		KEEP(*(.text.__gnat_last_chance_handler))
 		*(.text .text.*)
-		*(.rodata .rodata.*)   /* Include .rodata in .text to avoid split location issues */
+		*(.rodata .rodata.*)
 	} > ram :text
 
 	.data : ALIGN(0x1000) {
@@ -48,8 +46,6 @@ SECTIONS
 	PROVIDE(_stack_limit = _stack_bottom);
    PROVIDE(_stack_base  = _stack_top);
 	
-	_kernel_end = .;
-
 	/DISCARD/ : {
 		*(.note .note.*)
 		*(.eh_frame*)
