@@ -11,10 +11,10 @@ AS := riscv64-none-elf-as
 GCC := riscv64-none-elf-gcc -mcmodel=medany
 
 ADA_DIRS := $(shell find $(SRC) -type f \( -name '*.adb' -o -name '*.ads' \) | xargs -n1 dirname | sort -u)
-ADA_INCLUDES := $(addprefix -I, $(ADA_DIRS))
+ADA_INCLUDES := $(addprefix -I$(shell pwd)/, $(ADA_DIRS))
 
 CFLAGS := -ffreestanding -nostdlib -mno-relax -g -mcmodel=medany
-ADAFLAGS := -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib -nostartfiles -Iruntime/src $(ADA_INCLUDES) -mcmodel=medany
+ADAFLAGS := -gnatg -gnatA -gnatD -gnatec=$(shell pwd)/src/gnat.adc -nostdlib -nostartfiles -I$(shell pwd)/runtime/src $(ADA_INCLUDES) -mcmodel=medany
 # gnatp gnatn
 ADAPROJFLAGS := -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib
 
@@ -39,8 +39,10 @@ $(TMP):
 
 $(TMP)/ada/%.o:
 	mkdir -p $(dir $@)
-	$(GNATMAKE) $(patsubst %.o,%.adb,$(subst $(TMP)/ada/,src/,$@)) $(ADAFLAGS) -c -o $(@F)
-	mv $(@F) $@
+	cd $(dir $@) && \
+	$(GNATMAKE) -c $(ADAFLAGS) \
+	  -o $(notdir $@) \
+	  $(abspath $(patsubst $(TMP)/ada/%.o,$(SRC)/%.adb,$@))
 
 $(TMP)/c/%.o:
 	mkdir -p $(dir $@)
@@ -58,9 +60,7 @@ $(ELF): $(OBJS)
 	$(LD) -T $(SRC)/linker.ld -o $@ $(OBJS)
 
 clean:
-	rm -f *.o *.ali *.dg $(ELF)
 	rm -rf $(TMP)
-	rm -f esp.img image.iso
 
 bin: all
 	if [ ! -d "build" ]; then \
