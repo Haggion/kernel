@@ -67,7 +67,7 @@ bin: all
 		mkdir build; \
 	fi
 
-	riscv64-none-elf-objcopy -O binary $(ELF) build/kernel.bin
+	riscv64-none-elf-objcopy -O binary $(ELF) build/kernel.bin --remove-section .riscv.attributes
 
 .PHONY: runtime
 runtime:

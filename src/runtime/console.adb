@@ -100,6 +100,15 @@ package body Console is
          begin
             Shutdown;
          end;
+      elsif Command.Result = Make_Line ("reboot") then
+         declare
+            procedure Reboot;
+            pragma Import (C, Reboot, "reboot");
+         begin
+            Reboot;
+         end;
+      elsif Command.Result = Make_Line ("time") then
+         Time (Arguments);
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);
@@ -410,4 +419,57 @@ package body Console is
          Put_String ("Invalid option");
       end if;
    end XHCI;
+
+   procedure Time (Arguments : Line) is
+      function Tick_Time return Long_Integer;
+      pragma Import (C, Tick_Time, "tick_time");
+      function Cycle_Time return Long_Integer;
+      pragma Import (C, Cycle_Time, "cycle_time");
+
+      function RTC_Seconds return Long_Integer;
+      pragma Import (C, RTC_Seconds, "rtc_seconds");
+      function RTC_Minutes return Long_Integer;
+      pragma Import (C, RTC_Minutes, "rtc_minutes");
+      function RTC_Hours return Long_Integer;
+      pragma Import (C, RTC_Hours, "rtc_hours");
+      function RTC_Day return Long_Integer;
+      pragma Import (C, RTC_Day, "rtc_day");
+      function RTC_Month return Long_Integer;
+      pragma Import (C, RTC_Month, "rtc_month");
+      function RTC_Year return Long_Integer;
+      pragma Import (C, RTC_Year, "rtc_year");
+   begin
+      if Arguments = Make_Line ("tick") then
+         Put_Int (Tick_Time);
+         New_Line;
+      elsif Arguments = Make_Line ("cycle") then
+         Put_Int (Cycle_Time);
+         New_Line;
+      elsif Arguments = Make_Line ("date") then
+         Put_Int (RTC_Year);
+         Put_Char ('/');
+         Put_Int (RTC_Day);
+         Put_Char ('/');
+         Put_Int (RTC_Month);
+         New_Line;
+      elsif Arguments = Make_Line ("time") then
+         Put_Int (RTC_Hours);
+         Put_Char (':');
+         Put_Int (RTC_Minutes);
+         Put_Char (':');
+         Put_Int (RTC_Seconds);
+         New_Line;
+      elsif Arguments = Make_Line ("hour") then
+         Put_Int (RTC_Hours);
+         New_Line;
+      elsif Arguments = Make_Line ("minute") then
+         Put_Int (RTC_Minutes);
+         New_Line;
+      elsif Arguments = Make_Line ("second") then
+         Put_Int (RTC_Seconds);
+         New_Line;
+      else
+         Put_String ("Invalid option");
+      end if;
+   end Time;
 end Console;

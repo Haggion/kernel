@@ -25,5 +25,7 @@ private
    procedure Run_Shell (Code : File_Bytes_Pointer);
    procedure Test;
 
+   procedure Time (Arguments : Line);
+
    procedure XHCI (Arguments : Line);
 end Console;

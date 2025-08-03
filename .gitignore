@@ -17,3 +17,7 @@ runtime/build
 build/*
 
 *.log
+
+spl_tool
+*.bin
+*.img

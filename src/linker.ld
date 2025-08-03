@@ -13,6 +13,7 @@ MEMORY {
 SECTIONS
 {
 	. = ORIGIN(ram);
+	_start = .;
 
 	.text : ALIGN(0x1000) {
 		KEEP(*(.text._start))
