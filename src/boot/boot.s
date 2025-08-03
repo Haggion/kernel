@@ -5,13 +5,11 @@
 .global _start
 .type _start, @function
 _start:
-	la a0, entered_start
-   call _put_cstring
-
-	la a0, set_stk
-   call _put_cstring
 	# set stack pointer to top of stack
 	la sp, _stack_base
+
+	la a0, entered_start
+   call _put_cstring
 	
 	la a0, zero_bss
    call _put_cstring
