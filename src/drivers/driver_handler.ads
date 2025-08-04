@@ -11,6 +11,9 @@ package Driver_Handler is
    type RTC_Implementations is (
       StarFive, None
    );
+   type Graphics_Implementations is (
+      UBoot, None
+   );
 
    procedure Init;
    pragma Export (C, Init, "_initialize_drivers");
@@ -42,6 +45,14 @@ package Driver_Handler is
    pragma Export (C, RTC_Year, "rtc_year");
    procedure Enable_RTC;
    pragma Export (C, Enable_RTC, "enable_rtc");
+
+   --  graphics drivers
+   procedure Draw_Pixel (
+      X : Integer;
+      Y : Integer;
+      Color : Integer
+   );
+   pragma Export (C, Draw_Pixel, "draw_pixel");
 private
    --  UART drivers
    procedure QEMU_UART_Put_Char (Ch : Integer);
@@ -75,4 +86,12 @@ private
    pragma Import (C, StarFive_RTC_Year, "starfive_rtc_year");
    procedure StarFive_Enable_RTC;
    pragma Import (C, StarFive_Enable_RTC, "starfive_enable_rtc");
+
+   --  graphics drivers
+   procedure UBoot_FB_Draw_Pixel (
+      X : Integer;
+      Y : Integer;
+      Color : Integer
+   );
+   pragma Import (C, UBoot_FB_Draw_Pixel, "uboot_fb_draw_pixel");
 end Driver_Handler;

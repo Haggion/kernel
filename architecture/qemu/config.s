@@ -4,6 +4,7 @@
 .equ QEMU,     1
 .equ STARFIVE, 2
 .equ OPENSBI,  3
+.equ UBOOT,    4
 
 .global default_uart
 .type default_uart, @function
@@ -21,4 +22,10 @@ default_rtc:
 .type default_power, @function
 default_power:
    li a0, NONE
+   ret
+
+.global default_graphics
+.type default_graphics, @function
+default_graphics:
+   la a0, NONE
    ret

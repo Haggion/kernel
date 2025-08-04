@@ -98,6 +98,18 @@ package body Console is
          Reboot;
       elsif Command.Result = Make_Line ("time") then
          Time (Arguments);
+      elsif Command.Result = Make_Line ("draw") then
+         Draw (Arguments);
+      elsif Command.Result = Make_Line ("testdraw") then
+         for X in 0 .. 2255 loop
+            for Y in 0 .. 1503 loop
+               Draw_Pixel (
+                  X,
+                  Y,
+                  1
+               );
+            end loop;
+         end loop;
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);

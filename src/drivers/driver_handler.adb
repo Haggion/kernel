@@ -2,11 +2,13 @@
 --  1 => QEMU
 --  2 => StarFive
 --  3 => OpenSBI
+--  4 => UBoot
 
 package body Driver_Handler is
    UART_Implementation : UART_Implementations;
    Power_Implementation : Power_Implementations;
    RTC_Implementation : RTC_Implementations;
+   Graphics_Implementation : Graphics_Implementations;
 
    procedure Init is
       function UART_Default return Integer;
@@ -15,10 +17,13 @@ package body Driver_Handler is
       pragma Import (C, Power_Default, "default_power");
       function RTC_Default return Integer;
       pragma Import (C, RTC_Default, "default_rtc");
+      function Graphics_Default return Integer;
+      pragma Import (C, Graphics_Default, "default_graphics");
 
       UART_Selection : constant Integer := UART_Default;
       Power_Selection : constant Integer := Power_Default;
       RTC_Selection : constant Integer := RTC_Default;
+      Graphics_Selection : constant Integer := Graphics_Default;
    begin
       case UART_Selection is
          when 1 =>
@@ -41,6 +46,13 @@ package body Driver_Handler is
             RTC_Implementation := StarFive;
          when others =>
             RTC_Implementation := None;
+      end case;
+
+      case Graphics_Selection is
+         when 4 =>
+            Graphics_Implementation := UBoot;
+         when others =>
+            Graphics_Implementation := None;
       end case;
    end Init;
 
@@ -157,4 +169,18 @@ package body Driver_Handler is
             null;
       end case;
    end Enable_RTC;
+
+   procedure Draw_Pixel (
+      X : Integer;
+      Y : Integer;
+      Color : Integer
+   ) is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            UBoot_FB_Draw_Pixel (X, Y, Color);
+         when None =>
+            null;
+      end case;
+   end Draw_Pixel;
 end Driver_Handler;
