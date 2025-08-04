@@ -1,3 +1,4 @@
+# ./scripts/put_bin.sh partition
 gmake clean TARGET=starfive bin || exit 1
 diskutil mount $1 || exit 1
 # misnominer

@@ -2,7 +2,7 @@
 # This requires MPC, GMP, and whatever that other one is called, which I obtained from macports
 
 # command line options look like this:
-# ./make-cross-compilers.sh b gcc configure-gcc copy-dance configure-gnat clean gcc-stage-2
+# ./scripts/make-cross-compilers.sh b gcc configure-gcc copy-dance configure-gnat clean gcc-stage-2
 # where are arguments are positional and are not enabled if their value is not equal to that listed above
 # b: build binutils
 # gcc: build gcc (first stage, without gnat)
