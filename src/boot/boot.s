@@ -1,6 +1,7 @@
 .section .text._start
 
 .extern _put_cstring
+.extern _initialize_drivers
 
 .global _start
 .type _start, @function
@@ -8,13 +9,14 @@ _start:
 	# set stack pointer to top of stack
 	la sp, _stack_base
 
-	la a0, entered_start
-   call _put_cstring
-	
-	la a0, zero_bss
-   call _put_cstring
 	# zero bss
 	call _zero_bss
+
+	# initialize drivers first so we can use UART
+	call _initialize_drivers
+
+	la a0, entered_start
+   call _put_cstring
 	
 	la a0, init_heap
    call _put_cstring

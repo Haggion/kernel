@@ -1,0 +1,24 @@
+.section .text
+
+.equ NONE,     0
+.equ QEMU,     1
+.equ STARFIVE, 2
+.equ OPENSBI,  3
+
+.global default_uart
+.type default_uart, @function
+default_uart:
+   la a0, STARFIVE
+   ret
+
+.global default_rtc
+.type default_rtc, @function
+default_rtc:
+   la a0, STARFIVE
+   ret
+
+.global default_power
+.type default_power, @function
+default_power:
+   la a0, OPENSBI
+   ret

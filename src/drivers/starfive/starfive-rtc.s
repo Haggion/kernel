@@ -95,9 +95,9 @@ bcd_to_binary:
    add a0, t0, t1
    ret
 
-.global rtc_seconds
-.type rtc_seconds, @function
-rtc_seconds:
+.global starfive_rtc_seconds
+.type starfive_rtc_seconds, @function
+starfive_rtc_seconds:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)
@@ -114,9 +114,9 @@ rtc_seconds:
    addi sp, sp, 16 
    ret
 
-.global rtc_minutes
-.type rtc_minutes, @function
-rtc_minutes:
+.global starfive_rtc_minutes
+.type starfive_rtc_minutes, @function
+starfive_rtc_minutes:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)
@@ -135,9 +135,9 @@ rtc_minutes:
    addi sp, sp, 16 
    ret
    
-.global rtc_hours
-.type rtc_hours, @function
-rtc_hours:
+.global starfive_rtc_hours
+.type starfive_rtc_hours, @function
+starfive_rtc_hours:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)
@@ -156,9 +156,9 @@ rtc_hours:
    addi sp, sp, 16 
    ret
 
-.global rtc_day
-.type rtc_day, @function
-rtc_day:
+.global starfive_rtc_day
+.type starfive_rtc_day, @function
+starfive_rtc_day:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)
@@ -175,9 +175,9 @@ rtc_day:
    addi sp, sp, 16 
    ret
 
-.global rtc_month
-.type rtc_month, @function
-rtc_month:
+.global starfive_rtc_month
+.type starfive_rtc_month, @function
+starfive_rtc_month:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)
@@ -194,9 +194,9 @@ rtc_month:
    addi sp, sp, 16 
    ret
 
-.global rtc_year
-.type rtc_year, @function
-rtc_year:
+.global starfive_rtc_year
+.type starfive_rtc_year, @function
+starfive_rtc_year:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)
@@ -217,9 +217,9 @@ rtc_year:
 .extern _put_cstring
 .extern _put_int
 
-.global enable_rtc
-.type enable_rtc, @function
-enable_rtc:
+.global starfive_enable_rtc
+.type starfive_enable_rtc, @function
+starfive_enable_rtc:
    # save return address
    addi sp, sp, -16
    sd ra, 8(sp)

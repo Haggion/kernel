@@ -8,6 +8,7 @@ with Lines.Converter;
 with System; use System;
 with Ada.Unchecked_Conversion;
 with System.Machine_Code;
+with Driver_Handler; use Driver_Handler;
 
 package body Console is
    --  Console is always at some position
@@ -91,22 +92,10 @@ package body Console is
          Run (Arguments);
       elsif Command.Result = Make_Line ("test") then
          Test;
-      elsif Command.Result = Make_Line ("xhci") then
-         XHCI (Arguments);
       elsif Command.Result = Make_Line ("shutdown") then
-         declare
-            procedure Shutdown;
-            pragma Import (C, Shutdown, "shutdown");
-         begin
-            Shutdown;
-         end;
+         Shutdown;
       elsif Command.Result = Make_Line ("reboot") then
-         declare
-            procedure Reboot;
-            pragma Import (C, Reboot, "reboot");
-         begin
-            Reboot;
-         end;
+         Reboot;
       elsif Command.Result = Make_Line ("time") then
          Time (Arguments);
       else
@@ -400,44 +389,11 @@ package body Console is
       end if;
    end Info;
 
-   procedure XHCI (Arguments : Line) is
-      function XHCI_Register (Offset : Integer) return Integer;
-      pragma Import (C, XHCI_Register, "xhci_register");
-   begin
-      if Arguments = Make_Line ("caplength") then
-         Put_Int (Long_Integer (XHCI_Register (0)));
-         New_Line;
-      elsif Arguments = Make_Line ("hciversion") then
-         Put_Int (Long_Integer (XHCI_Register (2)));
-         New_Line;
-      elsif Arguments = Make_Line ("usbcmd") then
-         Put_Int (Long_Integer (
-            XHCI_Register (XHCI_Register (0))
-         ));
-         New_Line;
-      else
-         Put_String ("Invalid option");
-      end if;
-   end XHCI;
-
    procedure Time (Arguments : Line) is
       function Tick_Time return Long_Integer;
       pragma Import (C, Tick_Time, "tick_time");
       function Cycle_Time return Long_Integer;
       pragma Import (C, Cycle_Time, "cycle_time");
-
-      function RTC_Seconds return Long_Integer;
-      pragma Import (C, RTC_Seconds, "rtc_seconds");
-      function RTC_Minutes return Long_Integer;
-      pragma Import (C, RTC_Minutes, "rtc_minutes");
-      function RTC_Hours return Long_Integer;
-      pragma Import (C, RTC_Hours, "rtc_hours");
-      function RTC_Day return Long_Integer;
-      pragma Import (C, RTC_Day, "rtc_day");
-      function RTC_Month return Long_Integer;
-      pragma Import (C, RTC_Month, "rtc_month");
-      function RTC_Year return Long_Integer;
-      pragma Import (C, RTC_Year, "rtc_year");
    begin
       if Arguments = Make_Line ("tick") then
          Put_Int (Tick_Time);
@@ -446,27 +402,27 @@ package body Console is
          Put_Int (Cycle_Time);
          New_Line;
       elsif Arguments = Make_Line ("date") then
-         Put_Int (RTC_Year);
+         Put_Int (Long_Integer (RTC_Year));
          Put_Char ('/');
-         Put_Int (RTC_Day);
+         Put_Int (Long_Integer (RTC_Day));
          Put_Char ('/');
-         Put_Int (RTC_Month);
+         Put_Int (Long_Integer (RTC_Month));
          New_Line;
       elsif Arguments = Make_Line ("time") then
-         Put_Int (RTC_Hours);
+         Put_Int (Long_Integer (RTC_Hours));
          Put_Char (':');
-         Put_Int (RTC_Minutes);
+         Put_Int (Long_Integer (RTC_Minutes));
          Put_Char (':');
-         Put_Int (RTC_Seconds);
+         Put_Int (Long_Integer (RTC_Seconds));
          New_Line;
       elsif Arguments = Make_Line ("hour") then
-         Put_Int (RTC_Hours);
+         Put_Int (Long_Integer (RTC_Hours));
          New_Line;
       elsif Arguments = Make_Line ("minute") then
-         Put_Int (RTC_Minutes);
+         Put_Int (Long_Integer (RTC_Minutes));
          New_Line;
       elsif Arguments = Make_Line ("second") then
-         Put_Int (RTC_Seconds);
+         Put_Int (Long_Integer (RTC_Seconds));
          New_Line;
       else
          Put_String ("Invalid option");

@@ -26,6 +26,4 @@ private
    procedure Test;
 
    procedure Time (Arguments : Line);
-
-   procedure XHCI (Arguments : Line);
 end Console;
