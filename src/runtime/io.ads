@@ -3,7 +3,7 @@ with System;
 
 package IO is
    type Channel is (
-      UART
+      UART, Term
    );
 
    type Stream is record
@@ -12,6 +12,7 @@ package IO is
    end record;
 
    UART_Stream : constant Stream := (UART, UART);
+   Main_Stream : Stream := UART_Stream;
 
    procedure UART_Put_Char (Ch : Integer);
    pragma Import (C, UART_Put_Char, "uart_put_char");

@@ -26,4 +26,6 @@ private
    procedure Test;
 
    procedure Time (Arguments : Line);
+
+   procedure Redirect_Output (Arguments : Line);
 end Console;

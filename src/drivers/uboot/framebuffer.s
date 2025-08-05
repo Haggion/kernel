@@ -4,26 +4,34 @@
 .equ FB_WIDTH,  2256
 .equ FB_HEIGHT, 1504
 .equ FB_DEPTH,  16
+.equ FB_STRIDE, FB_WIDTH * 2
 
 .global uboot_fb_draw_pixel
 .type uboot_fb_draw_pixel, @function
 # void uboot_fb_draw_pixel (int x, int y, int color);
 uboot_fb_draw_pixel:
-   # t0 = y * FB_WIDTH
-   li   t2, FB_WIDTH
+   li   t2, FB_STRIDE
    mul  t0, a1, t2
 
-   # t0 = (y * width) + x
-   add  t0, t0, a0
+   # x * bytes per pixel (2)
+   slli t1, a0, 1
+   add  t0, t0, t1
 
-   # t0 = offset in bytes = pixel_index * 2
-   slli t0, t0, 1       # multiply by 2 using shift left
-
-   # t0 = address = FB_BASE + offset
    li   t1, FB_BASE
    add  t0, t1, t0
 
-   # store halfword (color) at calculated address
-   sh   a2, 0(t0)
+1: sh   a2, 0(t0)
+   fence rw, rw
+   ret
 
+.global uboot_fb_width
+.type uboot_fb_width, @function
+uboot_fb_width:
+   li a0, FB_WIDTH
+   ret
+
+.global uboot_fb_height
+.type uboot_fb_height, @function
+uboot_fb_height:
+   li a0, FB_HEIGHT
    ret

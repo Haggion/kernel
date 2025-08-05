@@ -9,6 +9,7 @@ with System; use System;
 with Ada.Unchecked_Conversion;
 with System.Machine_Code;
 with Driver_Handler; use Driver_Handler;
+with Terminal;
 
 package body Console is
    --  Console is always at some position
@@ -98,18 +99,10 @@ package body Console is
          Reboot;
       elsif Command.Result = Make_Line ("time") then
          Time (Arguments);
-      elsif Command.Result = Make_Line ("draw") then
-         Draw (Arguments);
-      elsif Command.Result = Make_Line ("testdraw") then
-         for X in 0 .. 2255 loop
-            for Y in 0 .. 1503 loop
-               Draw_Pixel (
-                  X,
-                  Y,
-                  1
-               );
-            end loop;
-         end loop;
+      elsif Command.Result = Make_Line ("output") then
+         Redirect_Output (Arguments);
+      elsif Command.Result = Make_Line ("clear") then
+         Terminal.Clear;
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);
@@ -440,4 +433,15 @@ package body Console is
          Put_String ("Invalid option");
       end if;
    end Time;
+
+   procedure Redirect_Output (Arguments : Line) is
+   begin
+      if Arguments = Make_Line ("uart") then
+         Main_Stream.Output := UART;
+      elsif Arguments = Make_Line ("terminal") then
+         Main_Stream.Output := Term;
+      else
+         Put_String ("Invalid option");
+      end if;
+   end Redirect_Output;
 end Console;

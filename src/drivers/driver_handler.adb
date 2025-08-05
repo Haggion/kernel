@@ -4,6 +4,8 @@
 --  3 => OpenSBI
 --  4 => UBoot
 
+with IO;
+
 package body Driver_Handler is
    UART_Implementation : UART_Implementations;
    Power_Implementation : Power_Implementations;
@@ -54,6 +56,10 @@ package body Driver_Handler is
          when others =>
             Graphics_Implementation := None;
       end case;
+
+      if Graphics_Implementation /= None then
+         IO.Main_Stream.Output := IO.Term;
+      end if;
    end Init;
 
    procedure UART_Put_Char (Ch : Integer) is
@@ -183,4 +189,24 @@ package body Driver_Handler is
             null;
       end case;
    end Draw_Pixel;
+
+   function Screen_Width return Integer is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return UBoot_FB_Width;
+         when None =>
+            return 0;
+      end case;
+   end Screen_Width;
+
+   function Screen_Height return Integer is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return UBoot_FB_Height;
+         when None =>
+            return 0;
+      end case;
+   end Screen_Height;
 end Driver_Handler;

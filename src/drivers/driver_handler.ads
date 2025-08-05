@@ -53,6 +53,10 @@ package Driver_Handler is
       Color : Integer
    );
    pragma Export (C, Draw_Pixel, "draw_pixel");
+   function Screen_Width return Integer;
+   pragma Export (C, Screen_Width, "screen_width");
+   function Screen_Height return Integer;
+   pragma Export (C, Screen_Height, "screen_height");
 private
    --  UART drivers
    procedure QEMU_UART_Put_Char (Ch : Integer);
@@ -94,4 +98,8 @@ private
       Color : Integer
    );
    pragma Import (C, UBoot_FB_Draw_Pixel, "uboot_fb_draw_pixel");
+   function UBoot_FB_Width return Integer;
+   pragma Import (C, UBoot_FB_Width, "uboot_fb_width");
+   function UBoot_FB_Height return Integer;
+   pragma Import (C, UBoot_FB_Height, "uboot_fb_height");
 end Driver_Handler;

@@ -1,5 +1,6 @@
 with Lines.Converter;
 with Ada.Unchecked_Conversion;
+with Terminal;
 
 package body IO is
    procedure Put_Char (
@@ -14,10 +15,13 @@ package body IO is
       Ch : Integer;
       S : Stream := UART_Stream
    ) is
+      pragma Unreferenced (S);
    begin
-      case S.Output is
+      case Main_Stream.Output is
          when UART =>
             UART_Put_Char (Ch);
+         when Term =>
+            Terminal.Put_Char (Character'Val (Ch));
       end case;
    end Put_Char;
 
@@ -86,6 +90,8 @@ package body IO is
       case S.Input is
          when UART =>
             return UART_Get_Char;
+         when Term =>
+            return Character'Val (0);
       end case;
    end Get_Char;
 
