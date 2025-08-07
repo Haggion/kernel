@@ -5,7 +5,7 @@ with Terminal;
 package body IO is
    procedure Put_Char (
       Ch : Character;
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) is
    begin
       Put_Char (Character'Pos (Ch), S);
@@ -13,22 +13,29 @@ package body IO is
 
    procedure Put_Char (
       Ch : Integer;
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) is
-      pragma Unreferenced (S);
+      Selected_Stream : Stream := S;
    begin
-      case Main_Stream.Output is
+      if Selected_Stream.Output = Default then
+         Selected_Stream := Main_Stream;
+      end if;
+
+      case Selected_Stream.Output is
          when UART =>
             UART_Put_Char (Ch);
          when Term =>
             Terminal.Put_Char (Character'Val (Ch));
+         when Default =>
+            --  shouldn't ever get here
+            null;
       end case;
    end Put_Char;
 
    procedure Put_String (
       Str : String;
       End_With : Character := Character'Val (10);
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) is
    begin
       for Ch of Str loop
@@ -45,7 +52,7 @@ package body IO is
    procedure Put_Line (
       Text : Line;
       End_With : Character := Character'Val (10);
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) is
    begin
       for Ch of Text loop
@@ -62,7 +69,7 @@ package body IO is
 
    procedure Put_Int (
       Int : Long_Integer;
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) is
    begin
       Put_Line (
@@ -77,7 +84,12 @@ package body IO is
       Put_Int (Int);
    end Put_C_Int;
 
-   procedure New_Line (S : Stream := UART_Stream) is
+   procedure UART_Put_C_Int (Int : Long_Integer) is
+   begin
+      Put_Int (Int, UART_Stream);
+   end UART_Put_C_Int;
+
+   procedure New_Line (S : Stream := Default_Stream) is
    begin
       --  carriage return (\r)
       Put_Char (13, S);
@@ -85,19 +97,26 @@ package body IO is
       Put_Char (10, S);
    end New_Line;
 
-   function Get_Char (S : Stream := UART_Stream) return Character is
+   function Get_Char (S : Stream := Default_Stream) return Character is
+      Selected_Stream : Stream := S;
    begin
-      case S.Input is
+      if Selected_Stream.Input = Default then
+         Selected_Stream := Main_Stream;
+      end if;
+
+      case Selected_Stream.Input is
          when UART =>
             return UART_Get_Char;
          when Term =>
+            return Character'Val (0);
+         when Default =>
             return Character'Val (0);
       end case;
    end Get_Char;
 
    function Get_Line (
       Show_Typing : Boolean;
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) return Line is
       Input : Character;
       LineBuilder : Line := (others => Character'Val (0));
@@ -130,7 +149,7 @@ package body IO is
       return LineBuilder;
    end Get_Line;
 
-   procedure Backspace (S : Stream := UART_Stream) is
+   procedure Backspace (S : Stream := Default_Stream) is
       Backspace_Char : constant Integer := 8;
    begin
       Put_Char (Backspace_Char, S);
@@ -143,9 +162,14 @@ package body IO is
       Put_Line (Text, Character'Val (0));
    end Put_C_String;
 
+   procedure UART_Put_C_String (Text : Line) is
+   begin
+      Put_Line (Text, Character'Val (0), UART_Stream);
+   end UART_Put_C_String;
+
    procedure Put_Address (
       Address : System.Address;
-      S : Stream := UART_Stream
+      S : Stream := Default_Stream
    ) is
       function Adr_To_Int is new
          Ada.Unchecked_Conversion (System.Address, Long_Integer);
