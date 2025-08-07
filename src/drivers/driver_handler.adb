@@ -39,6 +39,8 @@ package body Driver_Handler is
       case Power_Selection is
          when 3 =>
             Power_Implementation := OpenSBI;
+         when 1 =>
+            Power_Implementation := QEMU;
          when others =>
             Power_Implementation := None;
       end case;
@@ -91,6 +93,8 @@ package body Driver_Handler is
       case Power_Implementation is
          when OpenSBI =>
             OpenSBI_Shutdown;
+         when QEMU =>
+            QEMU_Shutdown;
          when None =>
             null;
       end case;
@@ -101,6 +105,8 @@ package body Driver_Handler is
       case Power_Implementation is
          when OpenSBI =>
             OpenSBI_Reboot;
+         when QEMU =>
+            QEMU_Reboot;
          when None =>
             null;
       end case;

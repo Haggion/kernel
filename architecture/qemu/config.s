@@ -21,7 +21,7 @@ default_rtc:
 .global default_power
 .type default_power, @function
 default_power:
-   li a0, NONE
+   li a0, QEMU
    ret
 
 .global default_graphics

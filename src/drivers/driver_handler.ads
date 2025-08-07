@@ -6,7 +6,7 @@ package Driver_Handler is
       QEMU, StarFive, None
    );
    type Power_Implementations is (
-      OpenSBI, None
+      OpenSBI, QEMU, None
    );
    type RTC_Implementations is (
       StarFive, None
@@ -74,6 +74,11 @@ private
    pragma Import (C, OpenSBI_Shutdown, "opensbi_shutdown");
    procedure OpenSBI_Reboot;
    pragma Import (C, OpenSBI_Reboot, "opensbi_reboot");
+
+   procedure QEMU_Shutdown;
+   pragma Import (C, QEMU_Shutdown, "qemu_shutdown");
+   procedure QEMU_Reboot;
+   pragma Import (C, QEMU_Reboot, "qemu_reboot");
 
    --  RTC drivers
    function StarFive_RTC_Seconds return Integer;
