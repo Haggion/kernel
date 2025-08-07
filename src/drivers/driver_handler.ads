@@ -12,7 +12,7 @@ package Driver_Handler is
       StarFive, None
    );
    type Graphics_Implementations is (
-      UBoot, None
+      UBoot, StarFive, None
    );
 
    procedure Init;
@@ -53,6 +53,8 @@ package Driver_Handler is
       Color : Integer
    );
    pragma Export (C, Draw_Pixel, "draw_pixel");
+   procedure Enable_Graphics;
+   pragma Export (C, Enable_Graphics, "enable_graphics");
    function Screen_Width return Integer;
    pragma Export (C, Screen_Width, "screen_width");
    function Screen_Height return Integer;
@@ -102,4 +104,21 @@ private
    pragma Import (C, UBoot_FB_Width, "uboot_fb_width");
    function UBoot_FB_Height return Integer;
    pragma Import (C, UBoot_FB_Height, "uboot_fb_height");
+
+   procedure StarFive_Display_Draw_Pixel (
+      X : Integer;
+      Y : Integer;
+      Color : Integer
+   );
+   pragma Import (
+      C,
+      StarFive_Display_Draw_Pixel,
+      "starfive_display_draw_pixel"
+   );
+   procedure StarFive_Enable_Display;
+   pragma Import (C, StarFive_Enable_Display, "starfive_enable_display");
+   function StarFive_Display_Width return Integer;
+   pragma Import (C, StarFive_Display_Width, "starfive_display_width");
+   function StarFive_Display_Height return Integer;
+   pragma Import (C, StarFive_Display_Height, "starfive_display_height");
 end Driver_Handler;

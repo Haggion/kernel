@@ -1,6 +1,7 @@
 .section .text._start
 
 .extern _put_cstring
+.extern _uart_put_cstring
 .extern _initialize_drivers
 
 .global _start
@@ -14,10 +15,15 @@ _start:
 
 	# initialize drivers first so we can use UART
 	call _initialize_drivers
+	la a0, init_drivers
+	call _uart_put_cstring
 
-	la a0, entered_start
-   call _put_cstring
-	
+	# graphics next, so if there's a screen we can
+	# see the output
+	la a0, enabling_graphics
+	call _uart_put_cstring
+	call enable_graphics
+
 	la a0, init_heap
    call _put_cstring
 	call initalize_heap
@@ -59,11 +65,10 @@ main:
 
 
 .section .rodata
-entered_start:   .asciz "[BOOT] Entered start\n\r"
-set_stk:         .asciz "[BOOT] Setting stack pointer\n\r"
-zero_bss:        .asciz "[BOOT] Zeroing bss\n\r"
-init_heap:       .asciz "[BOOT] Initializing heap\n\r"
-checking_stk:    .asciz "[BOOT] Checking stack\n\r"
-stk_ok:          .asciz "[BOOT] Stack passed checks\n\r"
-enabling_rtc:    .asciz "[BOOT] Enabling RTC\n\r"
-entering_kernel: .asciz "[BOOT] Entering kernel\n\n\r"
+init_heap:         .asciz "[BOOT] Initializing heap\n\r"
+checking_stk:      .asciz "[BOOT] Checking stack\n\r"
+stk_ok:            .asciz "[BOOT] Stack passed checks\n\r"
+enabling_rtc:      .asciz "[BOOT] Enabling RTC\n\r"
+entering_kernel:   .asciz "[BOOT] Entering kernel\n\n\r"
+init_drivers:      .asciz "[BOOT] Drivers initialized\n\r"
+enabling_graphics: .asciz "[BOOT] Enabling graphics\n\r"

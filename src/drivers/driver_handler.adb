@@ -53,6 +53,8 @@ package body Driver_Handler is
       case Graphics_Selection is
          when 4 =>
             Graphics_Implementation := UBoot;
+         when 2 =>
+            Graphics_Implementation := StarFive;
          when others =>
             Graphics_Implementation := None;
       end case;
@@ -185,16 +187,32 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             UBoot_FB_Draw_Pixel (X, Y, Color);
+         when StarFive =>
+            StarFive_Display_Draw_Pixel (X, Y, Color);
          when None =>
             null;
       end case;
    end Draw_Pixel;
+
+   procedure Enable_Graphics is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            null;
+         when StarFive =>
+            StarFive_Enable_Display;
+         when None =>
+            null;
+      end case;
+   end Enable_Graphics;
 
    function Screen_Width return Integer is
    begin
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_Width;
+         when StarFive =>
+            return StarFive_Display_Width;
          when None =>
             return 0;
       end case;
@@ -205,6 +223,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_Height;
+         when StarFive =>
+            return StarFive_Display_Height;
          when None =>
             return 0;
       end case;
