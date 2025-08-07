@@ -1,0 +1,35 @@
+.equ CLK_ENABLE, 0x80000000
+
+.extern _uart_put_cstring
+
+.global starfive_enable_clock
+.type starfive_enable_clock, @function
+# void enable_clock (address)
+starfive_enable_clock:
+   lw t0, 0(a0)
+   li t1, CLK_ENABLE
+   or t0, t0, t1
+   sw t0, 0(a0)
+
+   ret
+
+.global starfive_check_clock
+.type starfive_check_clock, @function
+# void starfive_check_clock (address, output_on_fail)
+starfive_check_clock:
+   # save return address
+   addi sp, sp, -16
+   sd ra, 8(sp)
+
+   lw t0, 0(a0)
+   li t1, CLK_ENABLE
+   and t0, t0, t1
+
+   bnez t0, 1f
+
+   mv a0, a1
+   call _uart_put_cstring
+
+1: ld ra, 8(sp)
+   addi sp, sp, 16 
+   ret
