@@ -1,14 +1,30 @@
+with System.Unsigned_Types; use System.Unsigned_Types;
+
 package Lines.Converter is
-   function Long_Int_To_Line (Int : Long_Integer) return Lines.Line;
+   function Long_Int_To_Line (Int : Long_Integer) return Line;
+   function Unsigned_To_Line (
+      Num : Long_Long_Unsigned;
+      Base : Short_Unsigned
+   ) return Line;
    function Line_To_Long_Int (Text : Line) return Long_Integer;
 
+   function Hex_To_Line (Num : Long_Long_Unsigned) return Line;
+   function Binary_To_Line (Num : Long_Long_Unsigned) return Line;
+
 private
-   type Digit is range 0 .. 9;
+   type Digit is range 0 .. 15;
+
    function Digit_To_Char (Num : Digit) return Character;
    function Char_To_Digit (Num : Character) return Digit;
 
    procedure Long_Int_To_Line_Helper (
       Num : Long_Integer;
+      Line_Builder : access Line
+   );
+
+   procedure Unsigned_To_Line_Helper (
+      Num : Long_Long_Unsigned;
+      Base : Short_Unsigned;
       Line_Builder : access Line
    );
 end Lines.Converter;

@@ -130,9 +130,6 @@ starfive_enable_rtc:
    addi sp, sp, -16
    sd ra, 8(sp)
 
-   call starfive_rtc_minutes
-   call _put_int
-
    # enable APB clock
    la   a0, enabling_apb
    call _put_cstring
