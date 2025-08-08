@@ -10,6 +10,7 @@ with Ada.Unchecked_Conversion;
 with System.Machine_Code;
 with Driver_Handler; use Driver_Handler;
 with Terminal;
+with Renderer;
 
 package body Console is
    --  Console is always at some position
@@ -27,6 +28,7 @@ package body Console is
 
       loop
          for Index in Current_Location.Name'Range loop
+            exit when Current_Location.Name (Index) = Null_Ch;
             Put_Char (Current_Location.Name (Index));
          end loop;
 
@@ -103,6 +105,14 @@ package body Console is
          Redirect_Output (Arguments);
       elsif Command.Result = Make_Line ("clear") then
          Terminal.Clear;
+      elsif Command.Result = Make_Line ("color") then
+         Terminal.Font_Color := Renderer.Color_Type (
+            Lines.Converter.Line_To_Long_Int (Arguments)
+         );
+      elsif Command.Result = Make_Line ("background") then
+         Terminal.Background_Color := Renderer.Color_Type (
+            Lines.Converter.Line_To_Long_Int (Arguments)
+         );
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command.Result);

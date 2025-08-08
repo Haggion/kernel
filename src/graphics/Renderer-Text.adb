@@ -4,7 +4,8 @@ package body Renderer.Text is
       X : Integer;
       Y : Integer;
       Scale : Integer;
-      Color : Color_Type
+      Color : Color_Type;
+      BG_Color : Color_Type
    ) is
    begin
       Draw_Bitmap_5x5 (
@@ -12,7 +13,8 @@ package body Renderer.Text is
          X,
          Y,
          Scale,
-         Color
+         Color,
+         BG_Color
       );
    end Draw_Character;
 
@@ -21,22 +23,28 @@ package body Renderer.Text is
       X : Integer;
       Y : Integer;
       Scale : Integer;
-      Color : Color_Type
+      Color : Color_Type;
+      BG_Color : Color_Type
    ) is
+      Current_Color : Color_Type;
    begin
       for Y0 in 0 .. 4 loop
          for X0 in 0 .. 4 loop
             if Get_Bit (Bitmap (Y0), X0) then
-               for Y1 in 0 .. Scale - 1 loop
-                  for X1 in 0 .. Scale - 1 loop
-                     Draw_Pixel (
-                        X + (4 - X0) * Scale + X1,
-                        Y + Y0 * Scale + Y1,
-                        Color
-                     );
-                  end loop;
-               end loop;
+               Current_Color := Color;
+            else
+               Current_Color := BG_Color;
             end if;
+
+            for Y1 in 0 .. Scale - 1 loop
+               for X1 in 0 .. Scale - 1 loop
+                  Draw_Pixel (
+                     X + (4 - X0) * Scale + X1,
+                     Y + Y0 * Scale + Y1,
+                     Current_Color
+                  );
+               end loop;
+            end loop;
          end loop;
       end loop;
    end Draw_Bitmap_5x5;

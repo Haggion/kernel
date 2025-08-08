@@ -6,7 +6,8 @@ package Renderer.Text is
       X : Integer;
       Y : Integer;
       Scale : Integer;
-      Color : Color_Type
+      Color : Color_Type;
+      BG_Color : Color_Type
    );
 private
    --  this could be more storage optimized, instead
@@ -20,6 +21,7 @@ private
       X : Integer;
       Y : Integer;
       Scale : Integer;
-      Color : Color_Type
+      Color : Color_Type;
+      BG_Color : Color_Type
    );
 end Renderer.Text;

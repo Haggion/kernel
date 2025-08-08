@@ -1,5 +1,4 @@
 with Renderer.Text; use Renderer.Text;
-with Renderer;
 with Driver_Handler;
 
 package body Terminal is
@@ -8,19 +7,21 @@ package body Terminal is
    Font_Scale : constant Integer := 4;
    Font_Size : constant Integer := 5;
    Font_Spacing : constant Integer := 1;
+   Refresh_Box_Width : constant Integer := 2250 - 1000;
+   Terminal_Width : Integer;
+   Col_Per_Row : Integer := 100;
+
+   procedure Initialize is
+   begin
+      Terminal_Width := Driver_Handler.Screen_Width - Refresh_Box_Width;
+      Col_Per_Row := Terminal_Width /
+         ((Font_Size + Font_Spacing) * Font_Scale);
+   end Initialize;
 
    procedure Put_Char (Ch : Character) is
    begin
       if Ch = Character'Val (10) then
          Row := Row + 1;
-
-         for I in 0 .. 10 loop
-            Renderer.Draw_Rectangle (
-               (1500, 1503),
-               (2250, 0),
-               Renderer.Color_Type (I * 3000 * 2 + 1)
-            );
-         end loop;
       elsif Ch = Character'Val (13) then
          Col := 0;
       elsif Ch = Character'Val (0) then
@@ -29,15 +30,34 @@ package body Terminal is
          if Col > 0 then
             Col := Col - 1;
          end if;
+      elsif Ch = Character'Val (127) then
+         null;
       else
          Draw_Character (
             Ch,
             Col * (Font_Size + Font_Spacing) * Font_Scale,
             Row * (Font_Size + Font_Spacing) * Font_Scale,
             Font_Scale,
-            65535
+            Font_Color,
+            Background_Color
          );
          Col := Col + 1;
+
+         if Col > Col_Per_Row then
+            Col := 0;
+            Row := Row + 1;
+         end if;
+      end if;
+
+      --  because the current way I'm drawing to the screen is
+      --  cached, it's needed to put a bunch of stuff on the screen
+      --  before it updates at all
+      if Do_Refresh then
+         Renderer.Draw_Rectangle (
+            (1000, 1503),
+            (1000 + Refresh_Box_Width, 0),
+            Renderer.Color_Type (100 * Character'Pos (Ch) + 1)
+         );
       end if;
    end Put_Char;
 
@@ -45,7 +65,7 @@ package body Terminal is
    begin
       for Y in 0 .. Driver_Handler.Screen_Height - 1 loop
          for X in 0 .. Driver_Handler.Screen_Width - 1 loop
-            Renderer.Draw_Pixel (X, Y, 1);
+            Renderer.Draw_Pixel (X, Y, Background_Color);
          end loop;
       end loop;
 

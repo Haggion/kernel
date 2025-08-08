@@ -5,6 +5,7 @@
 --  4 => UBoot
 
 with IO;
+with Terminal;
 
 package body Driver_Handler is
    UART_Implementation : UART_Implementations;
@@ -63,6 +64,7 @@ package body Driver_Handler is
 
       if Graphics_Implementation /= None then
          IO.Main_Stream.Output := IO.Debug;
+         Terminal.Initialize;
       end if;
    end Init;
 
