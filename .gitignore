@@ -21,3 +21,6 @@ build/*
 spl_tool
 *.bin
 *.img
+
+*.dtb
+*.dts
