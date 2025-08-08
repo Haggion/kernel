@@ -11,7 +11,7 @@ procedure Last_Chance_Handler
       Ada.Unchecked_Conversion (System.Address, Long_Long_Unsigned);
 begin
    New_Line;
-   
+
    String_Throw ("Some issue on line ", "last_chance_handler.adb");
    Put_Int (
       Long_Integer (Line)
