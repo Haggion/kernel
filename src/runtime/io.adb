@@ -24,7 +24,7 @@ package body IO is
       case Selected_Stream.Output is
          when UART =>
             UART_Put_Char (Ch);
-         when Terminal =>
+         when Term =>
             Terminal.Put_Char (Character'Val (Ch));
          when Debug =>
             UART_Put_Char (Ch);
