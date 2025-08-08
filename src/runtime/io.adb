@@ -24,7 +24,10 @@ package body IO is
       case Selected_Stream.Output is
          when UART =>
             UART_Put_Char (Ch);
-         when Term =>
+         when Terminal =>
+            Terminal.Put_Char (Character'Val (Ch));
+         when Debug =>
+            UART_Put_Char (Ch);
             Terminal.Put_Char (Character'Val (Ch));
          when Default =>
             --  shouldn't ever get here
@@ -106,6 +109,8 @@ package body IO is
 
       case Selected_Stream.Input is
          when UART =>
+            return UART_Get_Char;
+         when Debug =>
             return UART_Get_Char;
          when Term =>
             return Character'Val (0);

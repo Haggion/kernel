@@ -3,7 +3,7 @@ with System;
 
 package IO is
    type Channel is (
-      UART, Term, Default
+      UART, Term, Debug, Default
    );
 
    type Stream is record

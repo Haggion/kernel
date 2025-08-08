@@ -60,7 +60,7 @@ package body Driver_Handler is
       end case;
 
       if Graphics_Implementation /= None then
-         IO.Main_Stream.Output := IO.Term;
+         IO.Main_Stream.Output := IO.Debug;
       end if;
    end Init;
 
