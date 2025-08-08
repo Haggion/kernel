@@ -9,7 +9,7 @@ package Driver_Handler is
       OpenSBI, QEMU, None
    );
    type RTC_Implementations is (
-      StarFive, None
+      StarFive, QEMU, None
    );
    type Graphics_Implementations is (
       UBoot, None
@@ -95,6 +95,19 @@ private
    pragma Import (C, StarFive_RTC_Year, "starfive_rtc_year");
    procedure StarFive_Enable_RTC;
    pragma Import (C, StarFive_Enable_RTC, "starfive_enable_rtc");
+
+   function QEMU_Goldfish_RTC_Seconds return Integer;
+   pragma Import (C, QEMU_Goldfish_RTC_Seconds, "qemu_goldfish_rtc_seconds");
+   function QEMU_Goldfish_RTC_Minutes return Integer;
+   pragma Import (C, QEMU_Goldfish_RTC_Minutes, "qemu_goldfish_rtc_minutes");
+   function QEMU_Goldfish_RTC_Hours return Integer;
+   pragma Import (C, QEMU_Goldfish_RTC_Hours, "qemu_goldfish_rtc_hours");
+   function QEMU_Goldfish_RTC_Day return Integer;
+   pragma Import (C, QEMU_Goldfish_RTC_Day, "qemu_goldfish_rtc_day");
+   function QEMU_Goldfish_RTC_Month return Integer;
+   pragma Import (C, QEMU_Goldfish_RTC_Month, "qemu_goldfish_rtc_month");
+   function QEMU_Goldfish_RTC_Year return Integer;
+   pragma Import (C, QEMU_Goldfish_RTC_Year, "qemu_goldfish_rtc_year");
 
    --  graphics drivers
    procedure UBoot_FB_Draw_Pixel (

@@ -15,7 +15,7 @@ default_uart:
 .global default_rtc
 .type default_rtc, @function
 default_rtc:
-   li a0, NONE
+   li a0, QEMU
    ret
 
 .global default_power

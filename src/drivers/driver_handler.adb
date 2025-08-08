@@ -48,6 +48,8 @@ package body Driver_Handler is
       case RTC_Selection is
          when 2 =>
             RTC_Implementation := StarFive;
+         when 1 =>
+            RTC_Implementation := QEMU;
          when others =>
             RTC_Implementation := None;
       end case;
@@ -117,6 +119,8 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             return StarFive_RTC_Seconds;
+         when QEMU =>
+            return QEMU_Goldfish_RTC_Seconds;
          when None =>
             return -1;
       end case;
@@ -127,6 +131,8 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             return StarFive_RTC_Minutes;
+         when QEMU =>
+            return QEMU_Goldfish_RTC_Minutes;
          when None =>
             return -1;
       end case;
@@ -137,6 +143,8 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             return StarFive_RTC_Hours;
+         when QEMU =>
+            return QEMU_Goldfish_RTC_Hours;
          when None =>
             return -1;
       end case;
@@ -147,6 +155,8 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             return StarFive_RTC_Day;
+         when QEMU =>
+            return QEMU_Goldfish_RTC_Day;
          when None =>
             return -1;
       end case;
@@ -157,6 +167,8 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             return StarFive_RTC_Month;
+         when QEMU =>
+            return QEMU_Goldfish_RTC_Month;
          when None =>
             return -1;
       end case;
@@ -167,6 +179,8 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             return StarFive_RTC_Year;
+         when QEMU =>
+            return QEMU_Goldfish_RTC_Year;
          when None =>
             return -1;
       end case;
@@ -177,7 +191,7 @@ package body Driver_Handler is
       case RTC_Implementation is
          when StarFive =>
             StarFive_Enable_RTC;
-         when None =>
+         when others =>
             null;
       end case;
    end Enable_RTC;
