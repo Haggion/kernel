@@ -15,8 +15,8 @@ package Renderer is
    );
 
    procedure Draw_Rectangle (
-      Top_Left : Point;
-      Bottom_Right : Point;
+      P1 : Point;
+      P2 : Point;
       Color : Color_Type
    );
 
@@ -28,7 +28,8 @@ package Renderer is
 
    procedure Flush_Area (
       P1 : Point;
-      P2 : Point
+      P2 : Point;
+      Force : Boolean := False
    );
 
    procedure Initialize (Flush_Needed : Boolean);

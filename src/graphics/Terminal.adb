@@ -52,18 +52,16 @@ package body Terminal is
 
    procedure Clear is
    begin
-      for Y in 0 .. Driver_Handler.Screen_Height - 1 loop
-         for X in 0 .. Driver_Handler.Screen_Width - 1 loop
-            Renderer.Draw_Pixel (X, Y, Background_Color);
-         end loop;
-      end loop;
+      Renderer.Draw_Rectangle (
+         (0, 0),
+         (
+            Driver_Handler.Screen_Width,
+            Driver_Handler.Screen_Height
+         ),
+         Background_Color
+      );
 
       Row := 0;
       Col := 0;
-
-      Renderer.Flush_Area (
-         (0, Driver_Handler.Screen_Height - 1),
-         (Driver_Handler.Screen_Width - 1, 0)
-      );
    end Clear;
 end Terminal;

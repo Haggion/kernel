@@ -2,6 +2,7 @@ with Console.Commands.General; use Console.Commands.General;
 with Console.Commands.Term; use Console.Commands.Term;
 with Console.Commands.FS; use Console.Commands.FS;
 with Console.Commands.Math; use Console.Commands.Math;
+with Console.Commands.Graphics; use Console.Commands.Graphics;
 with File_System.RAM_Disk;
 with Driver_Handler; use Driver_Handler;
 with IO; use IO;
@@ -78,6 +79,8 @@ package body Console.Commands is
          return Divide (Args);
       elsif Command = Make_Line ("%") then
          return Modulus (Args);
+      elsif Command = Make_Line ("draw") then
+         return Draw (Args);
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command);

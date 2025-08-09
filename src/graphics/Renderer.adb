@@ -37,19 +37,24 @@ package body Renderer is
             Y0 := Y0 + Sy;
          end if;
       end loop;
+
+      Flush_Area (From, To);
    end Draw_Line;
 
    procedure Draw_Rectangle (
-      Top_Left : Point;
-      Bottom_Right : Point;
+      P1 : Point;
+      P2 : Point;
       Color : Color_Type
    ) is
+      Shape : constant Rect := Points_To_Rect (P1, P2);
    begin
-      for X in Top_Left.X .. Bottom_Right.X loop
-         for Y in Bottom_Right.Y .. Top_Left.Y loop
+      for X in Shape.X_Min .. Shape.X_Max loop
+         for Y in Shape.Y_Min .. Shape.Y_Max loop
             Draw_Pixel (X, Y, Color);
          end loop;
       end loop;
+
+      Flush_Area (P1, P2);
    end Draw_Rectangle;
 
    procedure Draw_Pixel (
@@ -65,7 +70,8 @@ package body Renderer is
 
    procedure Flush_Area (
       P1 : Point;
-      P2 : Point
+      P2 : Point;
+      Force : Boolean := False
    ) is
       Bytes_Per_Pixel : constant Unsigned := Unsigned (
          Screen_Data.Bytes_Per_Pixel
@@ -78,6 +84,10 @@ package body Renderer is
          (Shape.X_Max - Shape.X_Min)
       ) * Bytes_Per_Pixel / 64; --  div by 64 b/c 64 bytes per addr flushed
    begin
+      if not (Force or Screen_Data.Flush_Needed) then
+         return;
+      end if;
+
       for X in 0 .. Width loop
          for Y in Shape.Y_Min .. Shape.Y_Max loop
             Driver_Handler.Flush_Address (
