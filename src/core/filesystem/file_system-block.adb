@@ -27,26 +27,20 @@ package body File_System.Block is
       --  which is stored in a separate block(s).
       --  description start is the address of the first description block,
       --  or zero if the file has no description
-      Parsed.Description_Start := Bytes_To_Four_Bytes (
-         Block (32),
-         Block (33),
-         Block (34),
-         Block (35)
-      );
 
       --  a file can have certain attributes associated with it:
       --  readonly, system, etc.
-      Parsed.Attributes := Block (36);
+      Parsed.Attributes := Block (32);
 
       --  no time support yet, so I'll wait to implement this
       --  parse creation time (2 bytes)
       --  parse creation date (2 bytes)
 
       Parsed.Size := Bytes_To_Four_Bytes (
-         Block (41),
-         Block (42),
-         Block (43),
-         Block (44)
+         Block (37),
+         Block (38),
+         Block (39),
+         Block (40)
       );
 
       --  number of links the file has
@@ -55,10 +49,10 @@ package body File_System.Block is
       --  address pointing to the start of the file's data
       --  zero if the file has no data associated with it
       Parsed.Data_Start := Bytes_To_Four_Bytes (
-         Block (46),
-         Block (47),
-         Block (48),
-         Block (49)
+         Block (42),
+         Block (43),
+         Block (44),
+         Block (45)
       );
 
       --  the rest of the data in the block is just links
@@ -67,12 +61,12 @@ package body File_System.Block is
             --  links have two parts, the address of the linked block
             --  and a byte defining the type of link (linked to, linked by)
             Parsed.Links (Index).Address := Bytes_To_Four_Bytes (
-               Block (50 + 5 * Index),
-               Block (51 + 5 * Index),
-               Block (52 + 5 * Index),
-               Block (53 + 5 * Index)
+               Block (46 + 5 * Index),
+               Block (47 + 5 * Index),
+               Block (48 + 5 * Index),
+               Block (49 + 5 * Index)
             );
-            Parsed.Links (Index).Link_Type := Block (54 + 5 * Index);
+            Parsed.Links (Index).Link_Type := Block (50 + 5 * Index);
          end loop;
       end if;
 
@@ -126,44 +120,37 @@ package body File_System.Block is
          Result (Index) := Character'Pos (Metadata.Name (Index));
       end loop;
 
-      --  address of where description starts
-      Bytes := Four_Bytes_To_Bytes (Metadata.Description_Start);
-      Result (32) := Bytes (0);
-      Result (33) := Bytes (1);
-      Result (34) := Bytes (2);
-      Result (35) := Bytes (3);
-
-      Result (36) := Metadata.Attributes;
+      Result (32) := Metadata.Attributes;
 
       --  put creation time
       --  put creation date
 
       --  append size to block bytes
       Bytes := Four_Bytes_To_Bytes (Metadata.Size);
-      Result (41) := Bytes (0);
-      Result (42) := Bytes (1);
-      Result (43) := Bytes (2);
-      Result (44) := Bytes (3);
+      Result (37) := Bytes (0);
+      Result (38) := Bytes (1);
+      Result (39) := Bytes (2);
+      Result (40) := Bytes (3);
 
-      Result (45) := Metadata.Num_Links;
+      Result (41) := Metadata.Num_Links;
 
       --  address of where data starts
       Bytes := Four_Bytes_To_Bytes (Metadata.Data_Start);
-      Result (46) := Bytes (0);
-      Result (47) := Bytes (1);
-      Result (48) := Bytes (2);
-      Result (49) := Bytes (3);
+      Result (42) := Bytes (0);
+      Result (43) := Bytes (1);
+      Result (44) := Bytes (2);
+      Result (45) := Bytes (3);
 
       --  append links
       if Metadata.Num_Links > 0 then
          for Index in 0 .. Natural (Metadata.Num_Links) - 1 loop
             Bytes := Four_Bytes_To_Bytes (Metadata.Links (Index).Address);
-            Result (50 + 5 * Index) := Bytes (0);
-            Result (51 + 5 * Index) := Bytes (1);
-            Result (52 + 5 * Index) := Bytes (2);
-            Result (53 + 5 * Index) := Bytes (3);
+            Result (46 + 5 * Index) := Bytes (0);
+            Result (47 + 5 * Index) := Bytes (1);
+            Result (48 + 5 * Index) := Bytes (2);
+            Result (49 + 5 * Index) := Bytes (3);
 
-            Result (54 + 5 * Index) := Metadata.Links (Index).Link_Type;
+            Result (50 + 5 * Index) := Metadata.Links (Index).Link_Type;
          end loop;
       end if;
 

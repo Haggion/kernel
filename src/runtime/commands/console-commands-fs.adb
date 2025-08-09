@@ -287,11 +287,6 @@ package body Console.Commands.FS is
       elsif Args (0).Str_Val = Make_Line ("data-addr") then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Location.Data_Start);
-      elsif Args (0).Str_Val = Make_Line ("desc-addr") then
-         Result.Value.Value := Int;
-         Result.Value.Int_Val := Long_Integer (
-            Current_Location.Description_Start
-         );
       elsif Args (0).Str_Val = Make_Line ("num-links") then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Location.Num_Links);

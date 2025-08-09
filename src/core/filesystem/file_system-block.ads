@@ -9,12 +9,13 @@ package File_System.Block is
       Address : Storage_Address := 0;
       Link_Type : Byte := 0;
    end record;
-   --  86 is the maximum number of links
-   type Link_Array is array (0 .. 85) of Link_Container;
+   --  93 is the maximum number of links
+   --  that can fit in a 512 byte block (after
+   --  using 46 bytes for the other data)
+   type Link_Array is array (0 .. 93) of Link_Container;
 
    type File_Metadata is record
       Name : File_Name;
-      Description_Start : Storage_Address := 0;
       Attributes : Byte := 0;
       Time_Was_Created : Byte := 0;
       Date_Was_Created : Byte := 0;

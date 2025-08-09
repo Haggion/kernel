@@ -58,8 +58,6 @@ package body Console.Commands is
          return Write_To_File (Args);
       elsif Command = Make_Line ("read") then
          return Read (Args);
-      elsif Command = Make_Line ("desc") then
-         null;
       elsif Command = Make_Line ("new") then
          return New_File (Args);
       elsif Command = Make_Line ("jmp") then
