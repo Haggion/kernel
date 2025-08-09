@@ -4,7 +4,11 @@
 .equ FB_WIDTH,  2256
 .equ FB_HEIGHT, 1504
 .equ FB_DEPTH,  16
-.equ FB_STRIDE, FB_WIDTH * 2
+.equ FB_BPP,       2
+.equ FB_STRIDE, FB_WIDTH * FB_BPP
+
+.equ CC_BASE,   0x2010000
+.equ CC_FLUSH,  0x200
 
 .global uboot_fb_draw_pixel
 .type uboot_fb_draw_pixel, @function
@@ -20,8 +24,7 @@ uboot_fb_draw_pixel:
    li   t1, FB_BASE
    add  t0, t1, t0
 
-1: sh   a2, 0(t0)
-   fence rw, rw
+   sh   a2, 0(t0)
    ret
 
 .global uboot_fb_width
@@ -34,4 +37,22 @@ uboot_fb_width:
 .type uboot_fb_height, @function
 uboot_fb_height:
    li a0, FB_HEIGHT
+   ret
+
+.global uboot_fb_stride
+.type uboot_fb_stride, @function
+uboot_fb_stride:
+   li a0, FB_STRIDE
+   ret
+
+.global uboot_fb_bpp
+.type uboot_fb_bpp, @function
+uboot_fb_bpp:
+   li a0, FB_BPP
+   ret
+
+.global uboot_fb_start
+.type uboot_fb_start, @function
+uboot_fb_start:
+   li a0, FB_BASE
    ret

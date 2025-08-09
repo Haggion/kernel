@@ -29,3 +29,9 @@ default_power:
 default_graphics:
    la a0, NONE
    ret
+
+.global default_cache_controller
+.type default_cache_controller, @function
+default_cache_controller:
+   la a0, NONE
+   ret

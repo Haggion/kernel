@@ -47,6 +47,11 @@ package body Renderer.Text is
             end loop;
          end loop;
       end loop;
+
+      Flush_Area (
+         (X, Y + Scale * 5),
+         (X + Scale * 5, Y)
+      );
    end Draw_Bitmap_5x5;
 
    function Ch_To_Bitmap (Ch : Character) return Bitmap_5x5 is

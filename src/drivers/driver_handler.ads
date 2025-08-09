@@ -1,6 +1,9 @@
 --  The driver handler package exposes abstract interfaces to drivers,
 --  allowing the rest of the code to be unconcerned with choosing an
 --  implementation.
+
+with System.Unsigned_Types; use System.Unsigned_Types;
+
 package Driver_Handler is
    type UART_Implementations is (
       QEMU, StarFive, None
@@ -13,6 +16,9 @@ package Driver_Handler is
    );
    type Graphics_Implementations is (
       UBoot, None
+   );
+   type CC_Implementations is (
+      StarFive, None
    );
 
    procedure Init;
@@ -57,6 +63,16 @@ package Driver_Handler is
    pragma Export (C, Screen_Width, "screen_width");
    function Screen_Height return Integer;
    pragma Export (C, Screen_Height, "screen_height");
+   function Stride return Integer;
+   pragma Export (C, Stride, "stride");
+   function Bytes_Per_Pixel return Integer;
+   pragma Export (C, Bytes_Per_Pixel, "bytes_per_pixel");
+   function Framebuffer_Start return Long_Long_Unsigned;
+   pragma Export (C, Framebuffer_Start, "framebuffer_start");
+
+   --  cache control drivers
+   procedure Flush_Address (Address : Long_Long_Unsigned);
+   pragma Export (C, Flush_Address, "flush_address");
 private
    --  UART drivers
    procedure QEMU_UART_Put_Char (Ch : Integer);
@@ -120,4 +136,14 @@ private
    pragma Import (C, UBoot_FB_Width, "uboot_fb_width");
    function UBoot_FB_Height return Integer;
    pragma Import (C, UBoot_FB_Height, "uboot_fb_height");
+   function UBoot_FB_Stride return Integer;
+   pragma Import (C, UBoot_FB_Stride, "uboot_fb_stride");
+   function UBoot_FB_BPP return Integer;
+   pragma Import (C, UBoot_FB_BPP, "uboot_fb_bpp");
+   function UBoot_FB_Start return Long_Long_Unsigned;
+   pragma Import (C, UBoot_FB_Start, "uboot_fb_start");
+
+   --  cache control drivers
+   procedure StarFive_Flush_Address (Address : Long_Long_Unsigned);
+   pragma Import (C, StarFive_Flush_Address, "starfive_flush_address");
 end Driver_Handler;

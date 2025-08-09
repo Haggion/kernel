@@ -1,5 +1,6 @@
 with Renderer.Text; use Renderer.Text;
 with Driver_Handler;
+with Renderer;
 
 package body Terminal is
    Row : Integer := 0;
@@ -7,13 +8,12 @@ package body Terminal is
    Font_Scale : constant Integer := 4;
    Font_Size : constant Integer := 5;
    Font_Spacing : constant Integer := 1;
-   Refresh_Box_Width : constant Integer := 2250 - 1000;
    Terminal_Width : Integer;
    Col_Per_Row : Integer := 100;
 
    procedure Initialize is
    begin
-      Terminal_Width := Driver_Handler.Screen_Width - Refresh_Box_Width;
+      Terminal_Width := Driver_Handler.Screen_Width;
       Col_Per_Row := Terminal_Width /
          ((Font_Size + Font_Spacing) * Font_Scale);
    end Initialize;
@@ -48,17 +48,6 @@ package body Terminal is
             Row := Row + 1;
          end if;
       end if;
-
-      --  because the current way I'm drawing to the screen is
-      --  cached, it's needed to put a bunch of stuff on the screen
-      --  before it updates at all
-      if Do_Refresh then
-         Renderer.Draw_Rectangle (
-            (1000, 1503),
-            (1000 + Refresh_Box_Width, 0),
-            Renderer.Color_Type (100 * Character'Pos (Ch) + 1)
-         );
-      end if;
    end Put_Char;
 
    procedure Clear is
@@ -71,5 +60,10 @@ package body Terminal is
 
       Row := 0;
       Col := 0;
+
+      Renderer.Flush_Area (
+         (0, Driver_Handler.Screen_Height - 1),
+         (Driver_Handler.Screen_Width - 1, 0)
+      );
    end Clear;
 end Terminal;

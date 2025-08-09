@@ -7,7 +7,6 @@ begin
    File_System.RAM_Disk.Initialize;
 
    Terminal.Clear;
-   Terminal.Do_Refresh := True;
 
    Console.Read_Eval_Print_Loop;
 

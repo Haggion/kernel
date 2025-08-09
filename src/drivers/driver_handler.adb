@@ -6,12 +6,14 @@
 
 with IO;
 with Terminal;
+with Renderer;
 
 package body Driver_Handler is
    UART_Implementation : UART_Implementations;
    Power_Implementation : Power_Implementations;
    RTC_Implementation : RTC_Implementations;
    Graphics_Implementation : Graphics_Implementations;
+   CC_Implementation : CC_Implementations;
 
    procedure Init is
       function UART_Default return Integer;
@@ -22,11 +24,14 @@ package body Driver_Handler is
       pragma Import (C, RTC_Default, "default_rtc");
       function Graphics_Default return Integer;
       pragma Import (C, Graphics_Default, "default_graphics");
+      function CC_Default return Integer;
+      pragma Import (C, CC_Default, "default_cache_controller");
 
       UART_Selection : constant Integer := UART_Default;
       Power_Selection : constant Integer := Power_Default;
       RTC_Selection : constant Integer := RTC_Default;
       Graphics_Selection : constant Integer := Graphics_Default;
+      CC_Selection : constant Integer := CC_Default;
    begin
       case UART_Selection is
          when 1 =>
@@ -62,7 +67,15 @@ package body Driver_Handler is
             Graphics_Implementation := None;
       end case;
 
+      case CC_Selection is
+         when 2 =>
+            CC_Implementation := StarFive;
+         when others =>
+            CC_Implementation := None;
+      end case;
+
       if Graphics_Implementation /= None then
+         Renderer.Initialize (Graphics_Implementation = UBoot);
          IO.Main_Stream.Output := IO.Debug;
          Terminal.Initialize;
       end if;
@@ -231,4 +244,44 @@ package body Driver_Handler is
             return 0;
       end case;
    end Screen_Height;
+
+   function Stride return Integer is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return UBoot_FB_Stride;
+         when None =>
+            return 0;
+      end case;
+   end Stride;
+
+   function Bytes_Per_Pixel return Integer is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return UBoot_FB_BPP;
+         when None =>
+            return 0;
+      end case;
+   end Bytes_Per_Pixel;
+
+   function Framebuffer_Start return Long_Long_Unsigned is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return UBoot_FB_Start;
+         when None =>
+            return 0;
+      end case;
+   end Framebuffer_Start;
+
+   procedure Flush_Address (Address : Long_Long_Unsigned) is
+   begin
+      case CC_Implementation is
+         when StarFive =>
+            StarFive_Flush_Address (Address);
+         when None =>
+            null;
+      end case;
+   end Flush_Address;
 end Driver_Handler;

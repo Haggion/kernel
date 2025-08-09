@@ -1,3 +1,5 @@
+with System.Unsigned_Types; use System.Unsigned_Types;
+
 package Renderer is
    type Point is record
       X : Integer;
@@ -23,4 +25,33 @@ package Renderer is
       Y : Integer;
       Color : Color_Type
    );
+
+   procedure Flush_Area (
+      P1 : Point;
+      P2 : Point
+   );
+
+   procedure Initialize (Flush_Needed : Boolean);
+
+private
+   type Rect is record
+      X_Min : Integer;
+      X_Max : Integer;
+      Y_Min : Integer;
+      Y_Max : Integer;
+   end record;
+
+   type Screen_Data_Record is record
+      Screen_Height : Unsigned;
+      Screen_Width : Unsigned;
+      Bytes_Per_Pixel : Short_Unsigned;
+      Stride : Unsigned;
+      Framebuffer_Start : Long_Long_Unsigned;
+      --  some graphics implementations (u-boot) work on cached memory
+      Flush_Needed : Boolean;
+   end record;
+
+   Screen_Data : Screen_Data_Record;
+
+   function Points_To_Rect (P1 : Point; P2 : Point) return Rect;
 end Renderer;

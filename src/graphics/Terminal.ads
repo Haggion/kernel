@@ -3,7 +3,6 @@
 with Renderer;
 
 package Terminal is
-   Do_Refresh : Boolean := False;
    Font_Color : Renderer.Color_Type := 65535;
    Background_Color : Renderer.Color_Type := 1;
 
