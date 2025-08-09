@@ -27,5 +27,5 @@ default_power:
 .global default_graphics
 .type default_graphics, @function
 default_graphics:
-   la a0, UBOOT
+   la a0, STARFIVE
    ret

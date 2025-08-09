@@ -14,7 +14,7 @@ package body Terminal is
       if Ch = Character'Val (10) then
          Row := Row + 1;
 
-         for I in 0 .. 10 loop
+         for I in 0 .. 1 loop
             Renderer.Draw_Rectangle (
                (1500, 1503),
                (2250, 0),
