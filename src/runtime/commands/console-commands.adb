@@ -1,6 +1,7 @@
 with Console.Commands.General; use Console.Commands.General;
 with Console.Commands.Term; use Console.Commands.Term;
 with Console.Commands.FS; use Console.Commands.FS;
+with Console.Commands.Math; use Console.Commands.Math;
 with File_System.RAM_Disk;
 with Driver_Handler; use Driver_Handler;
 with IO; use IO;
@@ -69,6 +70,16 @@ package body Console.Commands is
          return Info (Args);
       elsif Command = Make_Line ("run") then
          return Run (Args);
+      elsif Command = Make_Line ("+") then
+         return Add (Args);
+      elsif Command = Make_Line ("-") then
+         return Subtract (Args);
+      elsif Command = Make_Line ("*") then
+         return Multiply (Args);
+      elsif Command = Make_Line ("/") then
+         return Divide (Args);
+      elsif Command = Make_Line ("%") then
+         return Modulus (Args);
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command);
