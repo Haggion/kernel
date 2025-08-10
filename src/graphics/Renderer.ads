@@ -1,4 +1,5 @@
 with System.Unsigned_Types; use System.Unsigned_Types;
+with Lines; use Lines;
 
 package Renderer is
    type Point is record
@@ -33,6 +34,8 @@ package Renderer is
    );
 
    procedure Initialize (Flush_Needed : Boolean);
+
+   function Line_To_Color (Name : Line) return Color_Type;
 
 private
    type Rect is record

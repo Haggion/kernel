@@ -134,4 +134,27 @@ package body Renderer is
       Screen_Data.Stride := Unsigned (Driver_Handler.Stride);
       Screen_Data.Framebuffer_Start := Driver_Handler.Framebuffer_Start;
    end Initialize;
+
+   function Line_To_Color (Name : Line) return Color_Type is
+   begin
+      if Name = Make_Line ("red") then
+         return 63488;
+      elsif Name = Make_Line ("orange") then
+         return 64544;
+      elsif Name = Make_Line ("yellow") then
+         return 65504;
+      elsif Name = Make_Line ("green") then
+         return 2016;
+      elsif Name = Make_Line ("blue") then
+         return 31;
+      elsif Name = Make_Line ("purple") then
+         return 51231;
+      elsif Name = Make_Line ("white") then
+         return 65535;
+      elsif Name = Make_Line ("black") then
+         return 1;
+      end if;
+
+      return 1;
+   end Line_To_Color;
 end Renderer;
