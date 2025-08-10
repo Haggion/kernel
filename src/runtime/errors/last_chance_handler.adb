@@ -1,14 +1,14 @@
 with Error_Handler; use Error_Handler;
 with IO; use IO;
 with Ada.Unchecked_Conversion;
-with System.Unsigned_Types; use System.Unsigned_Types;
-with Lines.Converter; use Lines.Converter;
 with Driver_Handler;
+with Lines;
 
 procedure Last_Chance_Handler
    (Source_Location : System.Address; Line : Integer) is
-   function Adr_To_Int is new
-      Ada.Unchecked_Conversion (System.Address, Long_Long_Unsigned);
+   type Line_Access is access Lines.Line;
+   function Addr_To_Line is new
+      Ada.Unchecked_Conversion (System.Address, Line_Access);
 begin
    New_Line;
 
@@ -17,12 +17,8 @@ begin
       Long_Integer (Line)
    );
 
-   Put_String (" At address 0x", Character'Val (0));
-   Put_Line (
-      Hex_To_Line (
-         Adr_To_Int (Source_Location)
-      )
-   );
+   Put_String (" in file", ' ');
+   Put_Line (Addr_To_Line (Source_Location).all);
 
    Put_String ("Press (c) to continue, (s) to shutdown, or (r) to reboot");
 
