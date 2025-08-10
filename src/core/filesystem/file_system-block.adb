@@ -44,7 +44,7 @@ package body File_System.Block is
       );
 
       --  number of links the file has
-      Parsed.Num_Links := Block (45);
+      Parsed.Num_Links := Block (41);
 
       --  address pointing to the start of the file's data
       --  zero if the file has no data associated with it
