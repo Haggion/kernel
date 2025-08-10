@@ -36,15 +36,26 @@ package body Console is
    Token_Index : Line_Index := 1;
    Depth : Integer := 0;
    Reading_Str : Boolean := False;
+   Reading_Escape_Char : Boolean := False;
    function Execute_Command (To_Execute : Line) return Exec_Status is
    begin
       for I in To_Execute'Range loop
          if Reading_Str then
-            if To_Execute (I) = '"' then
-               Reading_Str := False;
-            else
-               State (State_Index) (Token_Index) := To_Execute (I);
+            if Reading_Escape_Char then
+               State (State_Index) (Token_Index) := Escape_Char (
+                  To_Execute (I)
+               );
                Token_Index := Token_Index + 1;
+               Reading_Escape_Char := False;
+            else
+               if To_Execute (I) = '"' then
+                  Reading_Str := False;
+               elsif To_Execute (I) = '\' then
+                  Reading_Escape_Char := True;
+               else
+                  State (State_Index) (Token_Index) := To_Execute (I);
+                  Token_Index := Token_Index + 1;
+               end if;
             end if;
          else
             if Character'Pos (To_Execute (I)) >= 32 then
@@ -175,4 +186,20 @@ package body Console is
 
       return Ret_Fail;
    end Run_Command;
+
+   function Escape_Char (Suffix : Character) return Character is
+   begin
+      case Suffix is
+         when '\' =>
+            return '\';
+         when '"' =>
+            return '"';
+         when 'n' =>
+            return Character'Val (10);
+         when 'r' =>
+            return Character'Val (13);
+         when others =>
+            return Suffix;
+      end case;
+   end Escape_Char;
 end Console;
