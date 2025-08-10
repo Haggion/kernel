@@ -6,7 +6,7 @@ with System.Unsigned_Types; use System.Unsigned_Types;
 
 package Driver_Handler is
    type UART_Implementations is (
-      QEMU, StarFive, None
+      QEMU, StarFive, OpenSBI, None
    );
    type Power_Implementations is (
       OpenSBI, QEMU, None
@@ -20,6 +20,12 @@ package Driver_Handler is
    type CC_Implementations is (
       StarFive, None
    );
+
+   UART_Implementation : UART_Implementations;
+   Power_Implementation : Power_Implementations;
+   RTC_Implementation : RTC_Implementations;
+   Graphics_Implementation : Graphics_Implementations;
+   CC_Implementation : CC_Implementations;
 
    procedure Init;
    pragma Export (C, Init, "_initialize_drivers");
@@ -84,6 +90,11 @@ private
    pragma Import (C, StarFive_UART_Put_Char, "starfive_uart_put_char");
    function StarFive_UART_Get_Char return Character;
    pragma Import (C, StarFive_UART_Get_Char, "starfive_uart_get_char");
+
+   procedure OpenSBI_DBCN_Put_Char (Ch : Integer);
+   pragma Import (C, OpenSBI_DBCN_Put_Char, "opensbi_dbcn_write_byte");
+   function OpenSBI_DBCN_Get_Char return Character;
+   pragma Import (C, OpenSBI_DBCN_Get_Char, "opensbi_dbcn_read_byte");
 
    --  power drivers
    procedure OpenSBI_Shutdown;

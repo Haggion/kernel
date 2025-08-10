@@ -9,12 +9,6 @@ with Terminal;
 with Renderer;
 
 package body Driver_Handler is
-   UART_Implementation : UART_Implementations;
-   Power_Implementation : Power_Implementations;
-   RTC_Implementation : RTC_Implementations;
-   Graphics_Implementation : Graphics_Implementations;
-   CC_Implementation : CC_Implementations;
-
    procedure Init is
       function UART_Default return Integer;
       pragma Import (C, UART_Default, "default_uart");
@@ -38,6 +32,8 @@ package body Driver_Handler is
             UART_Implementation := QEMU;
          when 2 =>
             UART_Implementation := StarFive;
+         when 3 =>
+            UART_Implementation := OpenSBI;
          when others =>
             UART_Implementation := None;
       end case;
@@ -88,6 +84,8 @@ package body Driver_Handler is
             QEMU_UART_Put_Char (Ch);
          when StarFive =>
             StarFive_UART_Put_Char (Ch);
+         when OpenSBI =>
+            OpenSBI_DBCN_Put_Char (Ch);
          when None =>
             null;
       end case;
@@ -100,6 +98,8 @@ package body Driver_Handler is
             return QEMU_UART_Get_Char;
          when StarFive =>
             return StarFive_UART_Get_Char;
+         when OpenSBI =>
+            return OpenSBI_DBCN_Get_Char;
          when None =>
             return Character'Val (0);
       end case;

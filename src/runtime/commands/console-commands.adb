@@ -81,6 +81,8 @@ package body Console.Commands is
          return Modulus (Args);
       elsif Command = Make_Line ("draw") then
          return Draw (Args);
+      elsif Command = Make_Line ("driver") then
+         return Driver (Args);
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command);

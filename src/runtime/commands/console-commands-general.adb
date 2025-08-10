@@ -73,4 +73,115 @@ package body Console.Commands.General is
 
       return Ret_Void;
    end Echo;
+
+   function Driver (Args : Arguments) return Return_Data is
+   begin
+      if Args (0).Str_Val = Make_Line ("get") then
+         if Args (1).Str_Val = Make_Line ("uart") then
+            case UART_Implementation is
+               when None =>
+                  Put_String ("None");
+               when QEMU =>
+                  Put_String ("QEMU");
+               when StarFive =>
+                  Put_String ("StarFive");
+               when OpenSBI =>
+                  Put_String ("OpenSBI");
+            end case;
+         elsif Args (1).Str_Val = Make_Line ("power") then
+            case Power_Implementation is
+               when None =>
+                  Put_String ("None");
+               when QEMU =>
+                  Put_String ("QEMU");
+               when OpenSBI =>
+                  Put_String ("OpenSBI");
+            end case;
+         elsif Args (1).Str_Val = Make_Line ("rtc") then
+            case RTC_Implementation is
+               when None =>
+                  Put_String ("None");
+               when QEMU =>
+                  Put_String ("QEMU");
+               when StarFive =>
+                  Put_String ("StarFive");
+            end case;
+         elsif Args (1).Str_Val = Make_Line ("graphics") then
+            case Graphics_Implementation is
+               when None =>
+                  Put_String ("None");
+               when UBoot =>
+                  Put_String ("UBoot");
+            end case;
+         elsif Args (1).Str_Val = Make_Line ("cc") then
+            case CC_Implementation is
+               when None =>
+                  Put_String ("None");
+               when StarFive =>
+                  Put_String ("StarFive");
+            end case;
+         else
+            Put_String ("Invalid driver type");
+            return Ret_Fail;
+         end if;
+      elsif Args (0).Str_Val = Make_Line ("set") then
+         if Args (1).Str_Val = Make_Line ("uart") then
+            if Args (2).Str_Val = Make_Line ("none") then
+               UART_Implementation := None;
+            elsif Args (2).Str_Val = Make_Line ("qemu") then
+               UART_Implementation := QEMU;
+            elsif Args (2).Str_Val = Make_Line ("starfive") then
+               UART_Implementation := StarFive;
+            elsif Args (2).Str_Val = Make_Line ("opensbi") then
+               UART_Implementation := OpenSBI;
+            else
+               Put_String ("Invalid driver");
+            end if;
+         elsif Args (1).Str_Val = Make_Line ("power") then
+            if Args (2).Str_Val = Make_Line ("none") then
+               Power_Implementation := None;
+            elsif Args (2).Str_Val = Make_Line ("qemu") then
+               Power_Implementation := QEMU;
+            elsif Args (2).Str_Val = Make_Line ("opensbi") then
+               Power_Implementation := OpenSBI;
+            else
+               Put_String ("Invalid driver");
+            end if;
+         elsif Args (1).Str_Val = Make_Line ("rtc") then
+            if Args (2).Str_Val = Make_Line ("none") then
+               RTC_Implementation := None;
+            elsif Args (2).Str_Val = Make_Line ("qemu") then
+               RTC_Implementation := QEMU;
+            elsif Args (2).Str_Val = Make_Line ("starfive") then
+               RTC_Implementation := StarFive;
+            else
+               Put_String ("Invalid driver");
+            end if;
+         elsif Args (1).Str_Val = Make_Line ("graphics") then
+            if Args (2).Str_Val = Make_Line ("none") then
+               Graphics_Implementation := None;
+            elsif Args (2).Str_Val = Make_Line ("uboot") then
+               Graphics_Implementation := UBoot;
+            else
+               Put_String ("Invalid driver");
+            end if;
+         elsif Args (1).Str_Val = Make_Line ("cc") then
+            if Args (2).Str_Val = Make_Line ("none") then
+               CC_Implementation := None;
+            elsif Args (2).Str_Val = Make_Line ("starfive") then
+               CC_Implementation := StarFive;
+            else
+               Put_String ("Invalid driver");
+            end if;
+         else
+            Put_String ("Invalid driver type");
+            return Ret_Fail;
+         end if;
+      else
+         Put_String ("Invalid option");
+         return Ret_Fail;
+      end if;
+
+      return Ret_Void;
+   end Driver;
 end Console.Commands.General;
