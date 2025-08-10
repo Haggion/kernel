@@ -7,7 +7,8 @@ package body Terminal is
    Col : Integer := 0;
    Font_Scale : constant Integer := 4;
    Font_Size : constant Integer := 5;
-   Font_Spacing : constant Integer := 1;
+   Horizontal_Spacing : constant Integer := 1;
+   Vertical_Spacing : constant Integer := 2;
    Terminal_Width : Integer;
    Col_Per_Row : Integer := 100;
 
@@ -15,7 +16,7 @@ package body Terminal is
    begin
       Terminal_Width := Driver_Handler.Screen_Width;
       Col_Per_Row := Terminal_Width /
-         ((Font_Size + Font_Spacing) * Font_Scale);
+         ((Font_Size + Horizontal_Spacing) * Font_Scale) - 1;
    end Initialize;
 
    procedure Put_Char (Ch : Character) is
@@ -35,8 +36,8 @@ package body Terminal is
       else
          Draw_Character (
             Ch,
-            Col * (Font_Size + Font_Spacing) * Font_Scale,
-            Row * (Font_Size + Font_Spacing) * Font_Scale,
+            Col * (Font_Size + Horizontal_Spacing) * Font_Scale,
+            Row * (Font_Size + Vertical_Spacing) * Font_Scale,
             Font_Scale,
             Font_Color,
             Background_Color
