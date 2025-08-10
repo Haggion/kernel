@@ -13,6 +13,9 @@ begin
    New_Line;
 
    String_Throw ("Some issue on line ", "last_chance_handler.adb");
+
+   Put_Char (ESC);
+   Put_String ("[31m", Lines.Null_Ch);
    Put_Int (
       Long_Integer (Line)
    );
@@ -20,7 +23,12 @@ begin
    Put_String (" in file", ' ');
    Put_Line (Addr_To_Line (Source_Location).all);
 
-   Put_String ("Press (c) to continue, (s) to shutdown, or (r) to reboot");
+   Put_Char (ESC);
+   Put_String (
+      "[33mPress (c) to continue, (s) to shutdown, or (r) to reboot",
+      ESC
+   );
+   Put_String ("[0m");
 
    declare
       Input : Character;

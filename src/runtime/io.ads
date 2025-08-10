@@ -2,6 +2,8 @@ with Lines; use Lines;
 with System;
 
 package IO is
+   ESC : constant Character := Character'Val (27);
+
    type Channel is (
       UART, Term, Debug, Default
    );

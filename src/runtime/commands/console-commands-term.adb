@@ -17,9 +17,9 @@ package body Console.Commands.Term is
          Value : constant Color_Type := Arg_To_Color (Args (1));
       begin
          if Option = Make_Line ("font") then
-            Terminal.Font_Color := Value;
+            Terminal.Set_Font_Color (Value);
          elsif Option = Make_Line ("background") then
-            Terminal.Background_Color := Value;
+            Terminal.Set_Background_Color (Value);
          else
             Put_String ("Invalid option");
             return Ret_Fail;

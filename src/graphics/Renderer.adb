@@ -1,4 +1,5 @@
 with Driver_Handler;
+with Renderer.Colors; use Renderer.Colors;
 
 package body Renderer is
    procedure Draw_Line (
@@ -138,21 +139,21 @@ package body Renderer is
    function Line_To_Color (Name : Line) return Color_Type is
    begin
       if Name = Make_Line ("red") then
-         return 63488;
+         return Red;
       elsif Name = Make_Line ("orange") then
-         return 64544;
+         return Orange;
       elsif Name = Make_Line ("yellow") then
-         return 65504;
+         return Yellow;
       elsif Name = Make_Line ("green") then
-         return 2016;
+         return Green;
       elsif Name = Make_Line ("blue") then
-         return 31;
+         return Blue;
       elsif Name = Make_Line ("purple") then
-         return 51231;
+         return Purple;
       elsif Name = Make_Line ("white") then
-         return 65535;
+         return White;
       elsif Name = Make_Line ("black") then
-         return 1;
+         return Black;
       end if;
 
       return 1;
