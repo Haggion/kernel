@@ -82,7 +82,7 @@ package body Renderer is
 
       Width : constant Unsigned := Unsigned (
          (Shape.X_Max - Shape.X_Min)
-      ) * Bytes_Per_Pixel / 64; --  div by 64 b/c 64 bytes per addr flushed
+      ) * Bytes_Per_Pixel / 64 + 1; --  div by 64 b/c 64 bytes per addr flushed
    begin
       if not (Force or Screen_Data.Flush_Needed) then
          return;
