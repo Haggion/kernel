@@ -1,10 +1,20 @@
 package Renderer.Colors is
-   Red : Color_Type := 63488;
+   Red : Color_Type := 38912;
    Orange : Color_Type := 64544;
-   Yellow : Color_Type := 65504;
-   Green : Color_Type := 2016;
-   Blue : Color_Type := 31;
+   Yellow : Color_Type := 65056;
+   Green : Color_Type := 3360;
+   Blue : Color_Type := 22;
    Purple : Color_Type := 51231;
-   White : Color_Type := 65535;
+   White : Color_Type := 48631;
    Black : Color_Type := 1;
+   Magenta : Color_Type := 45078;
+   Cyan : Color_Type := 3382;
+   Gray : Color_Type := 25388;
+   Bright_Red : Color_Type := 57344;
+   Bright_Green : Color_Type := 7713;
+   Bright_Yellow : Color_Type := 59168;
+   Bright_Blue : Color_Type := 31;
+   Bright_Magenta : Color_Type := 57372;
+   Bright_Cyan : Color_Type := 22527;
+   Bright_White : Color_Type := 65535;
 end Renderer.Colors;

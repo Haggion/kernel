@@ -198,6 +198,8 @@ package body Console is
             return Character'Val (10);
          when 'r' =>
             return Character'Val (13);
+         when 'e' =>
+            return IO.ESC;
          when others =>
             return Suffix;
       end case;
