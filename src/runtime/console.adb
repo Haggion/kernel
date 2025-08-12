@@ -22,11 +22,20 @@ package body Console is
          To_Execute := Get_Line (True);
          New_Line;
 
-         while Execute_Command (To_Execute) = Ongoing loop
-            Put_String ("...", ' ');
-            To_Execute := Get_Line (True);
-            New_Line;
-         end loop;
+         declare
+            Status : Exec_Status := Execute_Command (To_Execute);
+         begin
+            while Status = Ongoing loop
+               Put_String ("...", ' ');
+               To_Execute := Get_Line (True);
+               New_Line;
+               Status := Execute_Command (To_Execute);
+            end loop;
+
+            if Status = Failed then
+               Reset_State;
+            end if;
+         end;
       end loop;
    end Read_Eval_Print_Loop;
 
@@ -108,6 +117,15 @@ package body Console is
       return Ongoing;
    end Execute_Command;
 
+   procedure Reset_State is
+   begin
+      State := (others => (others => Null_Ch));
+      State_Index := 0;
+      Token_Index := 1;
+      Reading_Str := False;
+      Depth := 0;
+   end Reset_State;
+
    function Run_State return Exec_Status is
       Data : Return_Data;
    begin
@@ -115,11 +133,7 @@ package body Console is
 
       Data := Run_Command;
 
-      State := (others => (others => Null_Ch));
-      State_Index := 0;
-      Token_Index := 1;
-      Reading_Str := False;
-      Depth := 0;
+      Reset_State;
 
       if Data.Succeeded then
          case Data.Value.Value is

@@ -40,4 +40,5 @@ private
    function Run_State return Exec_Status;
    function Run_Command return Return_Data;
    function Escape_Char (Suffix : Character) return Character;
+   procedure Reset_State;
 end Console;
