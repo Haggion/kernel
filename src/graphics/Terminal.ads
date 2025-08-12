@@ -3,7 +3,10 @@
 with Renderer; use Renderer;
 
 package Terminal is
-   procedure Put_Char (Ch : Character);
+   procedure Put_Char (
+      Ch : Character;
+      Self_Contained : Boolean := True
+   );
    procedure Clear;
    procedure Initialize;
 
@@ -12,4 +15,5 @@ package Terminal is
 
 private
    procedure ESC_Color;
+   procedure Increment_Row;
 end Terminal;
