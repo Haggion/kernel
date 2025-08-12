@@ -47,6 +47,10 @@ main:
 	#enable clock
 	call enable_rtc
 
+	la a0, enabling_trap_handler
+	call _put_cstring
+	call enable_trap_handler
+
 	la a0, entering_kernel
    call _put_cstring
 	# start kernel
@@ -59,11 +63,12 @@ main:
 
 
 .section .rodata
-entered_start:   .asciz "[BOOT] Entered start\n\r"
-set_stk:         .asciz "[BOOT] Setting stack pointer\n\r"
-zero_bss:        .asciz "[BOOT] Zeroing bss\n\r"
-init_heap:       .asciz "[BOOT] Initializing heap\n\r"
-checking_stk:    .asciz "[BOOT] Checking stack\n\r"
-stk_ok:          .asciz "[BOOT] Stack passed checks\n\r"
-enabling_rtc:    .asciz "[BOOT] Enabling RTC\n\r"
-entering_kernel: .asciz "[BOOT] Entering kernel\n\n\r"
+entered_start:         .asciz "[BOOT] Entered start\n\r"
+set_stk:               .asciz "[BOOT] Setting stack pointer\n\r"
+zero_bss:              .asciz "[BOOT] Zeroing bss\n\r"
+init_heap:             .asciz "[BOOT] Initializing heap\n\r"
+checking_stk:          .asciz "[BOOT] Checking stack\n\r"
+stk_ok:                .asciz "[BOOT] Stack passed checks\n\r"
+enabling_rtc:          .asciz "[BOOT] Enabling RTC\n\r"
+entering_kernel:       .asciz "[BOOT] Entering kernel\n\n\r"
+enabling_trap_handler: .asciz "[BOOT] Enabling trap handler\n\r"
