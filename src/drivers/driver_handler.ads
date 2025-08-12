@@ -65,6 +65,12 @@ package Driver_Handler is
       Color : Integer
    );
    pragma Export (C, Draw_Pixel, "draw_pixel");
+   procedure Draw_4_Pixels (
+      X_Start : Integer;
+      Y : Integer;
+      Colors : Long_Long_Unsigned
+   );
+   pragma Export (C, Draw_4_Pixels, "draw_4_pixels");
    function Screen_Width return Integer;
    pragma Export (C, Screen_Width, "screen_width");
    function Screen_Height return Integer;
@@ -143,6 +149,12 @@ private
       Color : Integer
    );
    pragma Import (C, UBoot_FB_Draw_Pixel, "uboot_fb_draw_pixel");
+   procedure UBoot_FB_Draw_4_Pixels (
+      X : Integer;
+      Y : Integer;
+      Colors : Long_Long_Unsigned
+   );
+   pragma Import (C, UBoot_FB_Draw_4_Pixels, "uboot_fb_draw_4_pixels");
    function UBoot_FB_Width return Integer;
    pragma Import (C, UBoot_FB_Width, "uboot_fb_width");
    function UBoot_FB_Height return Integer;

@@ -225,6 +225,20 @@ package body Driver_Handler is
       end case;
    end Draw_Pixel;
 
+   procedure Draw_4_Pixels (
+      X_Start : Integer;
+      Y : Integer;
+      Colors : Long_Long_Unsigned
+   ) is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            UBoot_FB_Draw_4_Pixels (X_Start, Y, Colors);
+         when None =>
+            null;
+      end case;
+   end Draw_4_Pixels;
+
    function Screen_Width return Integer is
    begin
       case Graphics_Implementation is

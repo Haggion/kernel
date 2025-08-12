@@ -48,8 +48,25 @@ package body Renderer is
       Color : Color_Type
    ) is
       Shape : constant Rect := Points_To_Rect (P1, P2);
+      Width : constant Integer := (Shape.X_Max - Shape.X_Min) / 4;
+
+      Repeated_Color : constant Long_Long_Unsigned :=
+         Long_Long_Unsigned (Color) +
+         Long_Long_Unsigned (Color) * 2 ** 16 +
+         Long_Long_Unsigned (Color) * 2 ** 32 +
+         Long_Long_Unsigned (Color) * 2 ** 48;
    begin
-      for X in Shape.X_Min .. Shape.X_Max loop
+      for X in 0 .. Width loop
+         for Y in Shape.Y_Min .. Shape.Y_Max loop
+            Driver_Handler.Draw_4_Pixels (
+               Shape.X_Min + X * 4,
+               Y,
+               Repeated_Color
+            );
+         end loop;
+      end loop;
+
+      for X in Shape.Y_Min + Width * 4 .. Shape.Y_Max loop
          for Y in Shape.Y_Min .. Shape.Y_Max loop
             Draw_Pixel (X, Y, Color);
          end loop;

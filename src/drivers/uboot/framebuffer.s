@@ -27,6 +27,23 @@ uboot_fb_draw_pixel:
    sh   a2, 0(t0)
    ret
 
+.global uboot_fb_draw_4_pixels
+.type uboot_fb_draw_4_pixels, @function
+# void uboot_fb_draw_pixel (int x_start, int y, long long colors);
+uboot_fb_draw_4_pixels:
+   li   t2, FB_STRIDE
+   mul  t0, a1, t2
+
+   # x * bytes per pixel (2)
+   slli t1, a0, 1
+   add  t0, t0, t1
+
+   li   t1, FB_BASE
+   add  t0, t1, t0
+
+   sd a2, 0(t0)
+   ret
+
 .global uboot_fb_width
 .type uboot_fb_width, @function
 uboot_fb_width:
