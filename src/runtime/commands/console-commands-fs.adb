@@ -161,6 +161,28 @@ package body Console.Commands.FS is
       return Ret_Void;
    end Append_To_File;
 
+   function Append_Raw (Args : Arguments) return Return_Data is
+      Append_Result : Return_Data;
+   begin
+      for Arg of Args loop
+         exit when Arg.Value /= Int;
+
+         Append_Result := Append_To_File (
+            (
+               Character'Val (Arg.Int_Val),
+               others => Null_Ch
+            ),
+            1
+         );
+
+         if not Append_Result.Succeeded then
+            return Ret_Fail;
+         end if;
+      end loop;
+
+      return Ret_Void;
+   end Append_Raw;
+
    function Write_To_File (Args : Arguments) return Return_Data is
       Data : File_Bytes_Pointer;
       Text : constant Line := Args (0).Str_Val;
@@ -235,7 +257,7 @@ package body Console.Commands.FS is
       function To_Proc_Type is
          new Ada.Unchecked_Conversion (Address, Proc_Type);
 
-      P : constant Proc_Type := To_Proc_Type (Code'Address);
+      P : constant Proc_Type := To_Proc_Type (Code.all'Address);
    begin
       System.Machine_Code.Asm (
          "fence.i",

@@ -10,7 +10,8 @@ package File_System is
    FSM_Address : constant Storage_Address := 1;
    UB_Address : constant Storage_Address := 2;
 
-   type Block_Bytes is array (0 .. Block_Size - 1) of Byte;
+   type Block_Bytes is array (0 .. Block_Size - 1) of Byte
+      with Component_Size => 8;
    type Device_Blocks is array (0 .. Num_Blocks - 1) of Block_Bytes;
 
    function Get_Block (Address : Storage_Address) return Block_Bytes;

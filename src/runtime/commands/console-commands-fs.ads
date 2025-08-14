@@ -9,6 +9,7 @@ package Console.Commands.FS is
 
    function Append_To_File (Args : Arguments) return Return_Data;
    function Append_To_File (Text : Line; Len : Natural) return Return_Data;
+   function Append_Raw (Args : Arguments) return Return_Data;
    --  sets the text of a file
    function Write_To_File (Args : Arguments) return Return_Data;
 

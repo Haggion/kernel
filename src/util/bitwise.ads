@@ -1,6 +1,7 @@
 package Bitwise is
    type Four_Bytes is range 0 .. 2**32 - 1;
-   type Byte is range 0 .. 2 ** 8 - 1;
+   type Byte is range 0 .. 2 ** 8 - 1
+      with Size => 8;
 
    function Bytes_To_Four_Bytes (
       Byte1 : Byte;

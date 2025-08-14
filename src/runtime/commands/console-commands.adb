@@ -48,13 +48,7 @@ package body Console.Commands is
       elsif Command = Make_Line ("apnd") then
          return Append_To_File (Args);
       elsif Command = Make_Line ("apnd-raw") then
-         return Append_To_File (
-            (
-               Character'Val (Args (0).Int_Val),
-               others => Null_Ch
-            ),
-            1
-         );
+         return Append_Raw (Args);
       elsif Command = Make_Line ("write") then
          return Write_To_File (Args);
       elsif Command = Make_Line ("read") then
