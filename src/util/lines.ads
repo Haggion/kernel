@@ -9,6 +9,8 @@ package Lines is
 
    function Make_Line (Text : String) return Line;
    procedure Append_To_Line (Target : access Line; Suffix : Character);
+   procedure Append_To_Line (Appended : access Line; Appending : Line);
+   procedure Append_New_Line (Target : access Line);
    function Substring (
       Text : Line;
       Start_Index : Line_Index;

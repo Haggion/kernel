@@ -54,6 +54,25 @@ package body Lines is
       );
    end Append_To_Line;
 
+   procedure Append_To_Line (Appended : access Line; Appending : Line) is
+      Len : Natural := Length (Appended.all);
+   begin
+      for Index in Appending'Range loop
+         exit when Appending (Index) = Null_Ch;
+         exit when Len + 1 > Natural (Appended'Last);
+
+         Len := Len + 1;
+         Appended (Line_Index (Len)) := Appending (Index);
+      end loop;
+   end Append_To_Line;
+
+   procedure Append_New_Line (Target : access Line) is
+      Len : constant Natural := Length (Target.all);
+   begin
+      Target (Line_Index (Len + 1)) := Character'Val (10);
+      Target (Line_Index (Len + 2)) := Character'Val (13);
+   end Append_New_Line;
+
    function Substring (
       Text : Line;
       Start_Index : Line_Index;
@@ -76,7 +95,7 @@ package body Lines is
    begin
       for Index in Line_Index loop
          if Text (Index) = Character'Val (0) then
-            return Natural (Index - 1);
+            return Natural (Index) - 1;
          end if;
       end loop;
 

@@ -1,6 +1,6 @@
 with System.Unsigned_Types; use System.Unsigned_Types;
 
-package Trap_Handler is
+package Error_Handler.Traps is
    procedure Handle_Trap (
       Cause : Long_Long_Unsigned;
       Exception_PC : Long_Unsigned;
@@ -8,4 +8,4 @@ package Trap_Handler is
       Status : Long_Long_Unsigned
    );
    pragma Export (C, Handle_Trap, "_handle_trap");
-end Trap_Handler;
+end Error_Handler.Traps;
