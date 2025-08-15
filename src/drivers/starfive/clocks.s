@@ -1,4 +1,9 @@
+.section .text
+
 .equ CLK_ENABLE, 0x80000000
+
+.equ SYSCRG,     0x13020000
+.equ AONCRG,     0x17000000
 
 .extern _uart_put_cstring
 
@@ -31,5 +36,35 @@ starfive_check_clock:
    call _uart_put_cstring
 
 1: ld ra, 8(sp)
+   addi sp, sp, 16 
+   ret
+
+.global starfive_enable_sysclock
+.type starfive_enable_sysclock, @function
+starfive_enable_sysclock:
+   # save return address
+   addi sp, sp, -16
+   sd ra, 8(sp)
+
+   li   t0, SYSCRG
+   add  a0, a0, t0
+   call starfive_enable_clock
+
+   ld ra, 8(sp)
+   addi sp, sp, 16 
+   ret
+
+.global starfive_enable_aonclock
+.type starfive_enable_aonclock, @function
+starfive_enable_aonclock:
+   # save return address
+   addi sp, sp, -16
+   sd ra, 8(sp)
+
+   li   t0, AONCRG
+   add  a0, a0, t0
+   call starfive_enable_clock
+
+   ld ra, 8(sp)
    addi sp, sp, 16 
    ret
