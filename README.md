@@ -1,6 +1,8 @@
 # The Haggion Kernel
 This repository contains the source of the monolithic kernel of the Haggion operating system.
 
+![Photo of the kernel being ran on a DC-ROMA Framework laptop](https://jahanrashidi.com/assets/haggion/dc-roma.jpeg)
+
 ## About Haggion
 Haggion is a small OS designed for notetaking and personal automation.
 
