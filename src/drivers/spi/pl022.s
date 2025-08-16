@@ -229,10 +229,6 @@ enable_pl022_spi:
    li   a1, 1 << 0x06
    call starfive_deassert_sysreset
 
-   li   t0, SSPBASE + SSPSR
-   lw   a0, 0(t0)
-   call _put_int
-
    # make sure the device is writable
    li   t0, SSPBASE + SSPPCellID0
    lw   t0, 0(t0)
@@ -271,23 +267,13 @@ enable_pl022_spi:
    call _put_cstring
 
    # clear ICR
-   li   t0, SSPBASE + SSPICR
-   li   t1, 3 # 3 => 0b11, clears both interrupt regs
-   sw   t1, 0(t0)
+   call clear_icr
 
    la   a0, draining_rx
    call _put_cstring
 
    # drain RX FIFO
-   li   t0, SSPBASE + SSPSR
-   li   t2, SSPBASE + SSPDR
-   # what we do here is just discard RX FIFO until RNE = 0 indicating nothing's left
-2: lw   t1, 0(t0)
-   andi t1, t1, RNE_MASK
-   beqz t1, 3f
-   # must still be content...
-   lw   t3, 0(t2)
-   j    2b
+   call drain_rx
 
 3: la   a0, configuring_sspcr1
    call _put_cstring
@@ -317,6 +303,65 @@ enable_pl022_spi:
 
    la   a0, ssp_enabled
    call _put_cstring
+
+   ld ra, 8(sp)
+   addi sp, sp, 16 
+   ret
+
+drain_rx:
+   li   t0, SSPBASE + SSPSR
+   li   t2, SSPBASE + SSPDR
+   # what we do here is just discard RX FIFO until RNE = 0 indicating nothing's left
+2: lw   t1, 0(t0)
+   andi t1, t1, RNE_MASK
+   beqz t1, 3f
+   # must still be content...
+   lw   t3, 0(t2)
+   j    2b
+
+   ret
+
+clear_icr:
+   li   t0, SSPBASE + SSPICR
+   li   t1, 3 # 3 => 0b11, clears both interrupt regs
+   sw   t1, 0(t0)
+
+   ret
+
+.global transfer_pl022_spi
+.type transfer_pl022_spi, @function
+# rx_data transfer_pl022_spi (tx_data)
+transfer_pl022_spi:
+   # save return address
+   addi sp, sp, -16
+   sd ra, 8(sp)
+
+   li   t0, SSPBASE
+
+   # wait until tx not full
+   li   t2, TNF_MASK
+1: lw   t1, SSPSR(t0)
+   and  t1, t1, t2
+   beqz t1, 1b
+
+   # write data
+   slli a0, a0, 8 # shift 8 b/c using 8-bit mode
+   sw   a0, SSPDR(t0)
+
+   # wait until not busy 
+   li   t2, BSY_MASK 
+2: lw   t1, SSPSR(t0)
+   and  t1, t1, t2
+   bnez t1, 2b
+
+   # wait until rx not empty 
+   li   t2, RNE_MASK 
+3: lw   t1, SSPSR(t0)
+   and  t1, t1, t2
+   beqz t1, 3b
+
+   # read data
+   lw   a0, SSPDR(t0)
 
    ld ra, 8(sp)
    addi sp, sp, 16 
