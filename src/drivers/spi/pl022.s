@@ -2,8 +2,10 @@
 
 .equ APB_CLK, 0x84
 
+.equ SSPBASE,      0x10070000 
+
 .equ SSPCR0,       0x000 # control register 0
-.equ SPPCR1,       0x004 # control register 1
+.equ SSPCR1,       0x004 # control register 1
 .equ SSPDR,        0x008 # receive FIFO and transmit FIFO data register
 .equ SSPSR,        0x00C # status register
 .equ SSPCPSR,      0x010 # clock prescale register
@@ -20,6 +22,12 @@
 .equ SSPPCellID1,  0xFF4 # primecell identification register bits 15:8
 .equ SSPPCellID2,  0xFF8 # primecell identification register bits 23:16
 .equ SSPPCellID3,  0xFFC # primecell identification register bits 31:24
+
+.equ TFE_MASK,     1
+.equ TNF_MASK,     2
+.equ RNE_MASK,     4
+.equ RFF_MASK,     8
+.equ BSY_MASK,     16
 
 /* SSPCR0 | Control register 0
 ===========================================================
@@ -198,14 +206,128 @@ enable_pl022_spi:
    addi sp, sp, -16
    sd ra, 8(sp)
 
+   # enable clocks
    li   a0, APB_CLK
    call starfive_enable_sysclock
+   li   a0, 0x20C 
+   call starfive_enable_sysclock
+   li   a0, 0x210
+   call starfive_enable_sysclock
+   li   a0, 0x214
+   call starfive_enable_sysclock
+   li   a0, 0x218
+   call starfive_enable_sysclock
+   li   a0, 0x21C
+   call starfive_enable_sysclock
+   li   a0, 0x220
+   call starfive_enable_sysclock
+   li   a0, 0x224
+   call starfive_enable_sysclock
    
-   li   a0, 0x200
-   li   a1, 0x06
+   # deassert resets
+   li   a0, 0x4 * 0x2
+   li   a1, 1 << 0x06
    call starfive_deassert_sysreset
-   #0x17
+
+   li   t0, SSPBASE + SSPSR
+   lw   a0, 0(t0)
+   call _put_int
+
+   # make sure the device is writable
+   li   t0, SSPBASE + SSPPCellID0
+   lw   t0, 0(t0)
+   bnez t0, 4f
+
+   la   a0, device_gated
+   call _put_cstring
 
    ld ra, 8(sp)
    addi sp, sp, 16 
    ret
+
+4: la   a0, configuring_sspcr0
+   call _put_cstring
+
+   # configure SSPCR0
+   li   t0, SSPBASE + SSPCR0
+   li   t1, ~(0xF << 4) # mask for using motorola SPI protocol, and 0 for SPO & SPH
+   lw   t2, 0(t0)
+   and  t2, t2, t1
+   li   t1, 7 # use 8-bit mode
+   or   t2, t2, t1
+   li   t1, 255 << 8 # use a high SCR for safety
+   or   t2, t2, t1
+   sw   t2, 0(t0)
+
+   la   a0, setting_sspcpsr
+   call _put_cstring
+
+   # set SSPCPSR
+   li   t0, SSPBASE + SSPCPSR
+   li   t1, 254
+   sw   t1, 0(t0)
+
+   la   a0, clearing_icr
+   call _put_cstring
+
+   # clear ICR
+   li   t0, SSPBASE + SSPICR
+   li   t1, 3 # 3 => 0b11, clears both interrupt regs
+   sw   t1, 0(t0)
+
+   la   a0, draining_rx
+   call _put_cstring
+
+   # drain RX FIFO
+   li   t0, SSPBASE + SSPSR
+   li   t2, SSPBASE + SSPDR
+   # what we do here is just discard RX FIFO until RNE = 0 indicating nothing's left
+2: lw   t1, 0(t0)
+   andi t1, t1, RNE_MASK
+   beqz t1, 3f
+   # must still be content...
+   lw   t3, 0(t2)
+   j    2b
+
+3: la   a0, configuring_sspcr1
+   call _put_cstring
+
+   # configure SSPCR1
+   li   t0, SSPBASE + SSPCR1
+   lw   t2, 0(t0)
+   li   t1, ~4 # mask for setting master mode
+   and  t2, t2, t1
+   li   t1, 2 # enable ssp peripheral
+   or   t2, t2, t1
+   sw   t2, 0(t0) 
+
+   la   a0, enabling_ssp
+   call _put_cstring
+
+   # enable SSP
+   # we write a value to the transmit FIFO and then wait for it to be read
+   li   t0, SSPBASE + SSPDR
+   li   t1, 1234
+   sw   t1, 0(t0)
+   
+   li   t0, SSPBASE + SSPSR
+1: lw   t1, 0(t0)
+   andi t1, t1, TNF_MASK
+   beqz t1, 1b
+
+   la   a0, ssp_enabled
+   call _put_cstring
+
+   ld ra, 8(sp)
+   addi sp, sp, 16 
+   ret
+
+.section .rodata
+configuring_sspcr0: .asciz "[SPI] Configuring SSPCR0\n\r"
+setting_sspcpsr:    .asciz "[SPI] Setting SSPCPSR\n\r"
+clearing_icr:       .asciz "[SPI] Clearing ICR\n\r"
+draining_rx:        .asciz "[SPI] Draining RX FIFO\n\r"
+configuring_sspcr1: .asciz "[SPI] Configuring SSPCR1\n\r"
+enabling_ssp:       .asciz "[SPI] Enabling SSP\n\r"
+ssp_enabled:        .asciz "[SPI] SSP enabled\n\r"
+device_gated:       .asciz "\x1b[31m[SPI] Failed to enable SPI: device gated\x1b[0m\n\r"

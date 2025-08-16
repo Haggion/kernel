@@ -1,6 +1,6 @@
 .section .text
 
-.equ SYSCRG,     0x13020000
+.equ SYSCRG,     0x13020000 + 0x2F8
 
 .global starfive_assert_reset
 .type starfive_assert_reset, @function
