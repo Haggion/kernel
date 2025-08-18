@@ -3,6 +3,9 @@ with System;
 
 package IO is
    ESC : constant Character := Character'Val (27);
+   ENDL : constant String :=
+      Character'Val (13) &
+      Character'Val (10);
 
    type Channel is (
       UART, Term, Debug, Default
