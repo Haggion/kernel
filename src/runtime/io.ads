@@ -3,9 +3,10 @@ with System;
 
 package IO is
    ESC : constant Character := Character'Val (27);
-   ENDL : constant String :=
-      Character'Val (13) &
-      Character'Val (10);
+   LF : constant Character := Character'Val (10);
+   CR : constant Character := Character'Val (13);
+   NUL : constant Character := Character'Val (0);
+   ENDL : constant String := LF & CR;
 
    type Channel is (
       UART, Term, Debug, Default
