@@ -204,7 +204,7 @@ SSPINTR
 enable_pl022_spi:
    # save return address
    addi sp, sp, -16
-   sd ra, 8(sp)
+   sd   ra, 8(sp)
 
    # enable clocks
    li   a0, APB_CLK
@@ -319,7 +319,7 @@ drain_rx:
    lw   t3, 0(t2)
    j    2b
 
-   ret
+3: ret
 
 clear_icr:
    li   t0, SSPBASE + SSPICR
@@ -328,43 +328,50 @@ clear_icr:
 
    ret
 
+.global cleanup_pl022_spi
+.type cleanup_pl022_spi, @function
+# void cleanup_pl022_spi()
+cleanup_pl022_spi:
+   # save return address
+   addi sp, sp, -16
+   sd   ra, 8(sp)
+
+   call clear_icr
+   call drain_rx
+
+   ld   ra, 8(sp)
+   addi sp, sp, 16
+   ret
+
 .global transfer_pl022_spi
 .type transfer_pl022_spi, @function
 # rx_data transfer_pl022_spi (tx_data)
 transfer_pl022_spi:
-   # save return address
-   addi sp, sp, -16
-   sd ra, 8(sp)
+   li      t0, SSPBASE
 
-   li   t0, SSPBASE
+   # wait for tx not full
+1: lw      t1, SSPSR(t0)
+   andi    t1, t1, TNF_MASK 
+   beqz    t1, 1b
 
-   # wait until tx not full
-   li   t2, TNF_MASK
-1: lw   t1, SSPSR(t0)
-   and  t1, t1, t2
-   beqz t1, 1b
+   # write byte
+   andi    a0, a0, 0xFF
+   sw      a0, SSPDR(t0)
 
-   # write data
-   slli a0, a0, 8 # shift 8 b/c using 8-bit mode
-   sw   a0, SSPDR(t0)
+   # wait until rx not empty
+2: lw      t1, SSPSR(t0)
+   andi    t1, t1, RNE_MASK
+   beqz    t1, 2b
 
-   # wait until not busy 
-   li   t2, BSY_MASK 
-2: lw   t1, SSPSR(t0)
-   and  t1, t1, t2
-   bnez t1, 2b
+   # read byte
+   lw      a0, SSPDR(t0)
+   andi    a0, a0, 0xFF
 
-   # wait until rx not empty 
-   li   t2, RNE_MASK 
-3: lw   t1, SSPSR(t0)
-   and  t1, t1, t2
-   beqz t1, 3b
+   # wait for not busy
+3: lw      t1, SSPSR(t0)
+   andi    t1, t1, BSY_MASK
+   bnez   t1, 3b
 
-   # read data
-   lw   a0, SSPDR(t0)
-
-   ld ra, 8(sp)
-   addi sp, sp, 16 
    ret
 
 .section .rodata
