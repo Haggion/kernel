@@ -58,16 +58,16 @@ void initalize_heap() {
 }
 
 void print_heap() {
-    _put_cstring("===== HEAP START =====\n");
+    _put_cstring("===== HEAP START =====\n\r");
     heap_block_header *curr = initial_heap_block;
     do {
         _put_cstring("Block: ");
         _put_int((long)curr->start_address);
         _put_cstring(" size: ");
         _put_int(curr->size);
-        _put_cstring(curr->free ? " FREE\n" : " USED\n");
+        _put_cstring(curr->free ? " FREE\n\r" : " USED\n\r");
     } while (curr = curr->next);
-    _put_cstring("===== HEAP END =====\n");
+    _put_cstring("===== HEAP END =====\n\r");
 }
 
 static const size_t HEADER_SIZE = sizeof(heap_block_header);
