@@ -130,11 +130,7 @@ package body IO is
       Input := Get_Char (S);
 
       while Character'Pos (Input) /= 13 loop
-         if Show_Typing then
-            Put_Char (Input, S);
-         end if;
-
-         if Character'Pos (Input) = 127 then
+         if Is_Backspace (Input) then
             if Index > 1 then
                Index := Index - 1;
                LineBuilder (Index) := Character'Val (0);
@@ -144,6 +140,10 @@ package body IO is
                end if;
             end if;
          else
+            if Show_Typing then
+               Put_Char (Input, S);
+            end if;
+
             LineBuilder (Index) := Input;
             Index := Index + 1;
          end if;
@@ -153,6 +153,16 @@ package body IO is
 
       return LineBuilder;
    end Get_Line;
+
+   function Is_Backspace (Ch : Character) return Boolean is
+   begin
+      case Character'Pos (Ch) is
+         when 127 | 8 =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Backspace;
 
    procedure Backspace (S : Stream := Default_Stream) is
       Backspace_Char : constant Integer := 8;
