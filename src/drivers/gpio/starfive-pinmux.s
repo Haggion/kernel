@@ -86,8 +86,8 @@ gpi_write:
    ret
 
 # Apply spi1-0 pinmux: set func on pads and enable MISO pad input config
-.globl pinmux_apply_spi1_0
-.type  pinmux_apply_spi1_0, @function
+.globl starfive_pinmux_apply_spi1_0
+.type  starfive_pinmux_apply_spi1_0, @function
 starfive_pinmux_apply_spi1_0:
    addi sp, sp, -16
    sd   ra, 8(sp)
