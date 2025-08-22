@@ -19,13 +19,14 @@ package Error_Handler is
       Load_Page_Fault,
       Reserved,
       Store_Page_Fault,
-      Unknown_Trap
+      Unknown_Trap,
+      CrOS_EC_Error
    );
    type Optional_Params_Type is (
       No_Extra, On_Line
    );
    type Error_Level is (
-      OS, User
+      OS, Driver, User
    );
    type Builtin_Error is record
       Kind : Error_Type;

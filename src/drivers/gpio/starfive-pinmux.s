@@ -1,13 +1,14 @@
 .section .text
 
-.equ SYS_BASE, 0x13040000
+.equ SYS_BASE,            0x13040000
 
-.equ FUNCSEL_OFF_A,       0x2A4
-.equ FUNCSEL_OFF_B,       0x2AC
+.equ FUNCSEL_OFF_A,       0x2A4 # MISO, MOSI
+.equ FUNCSEL_OFF_B,       0x2AC # GPIO, SCK
 
-.equ PAD36_SHIFT,         17
-.equ PAD39_SHIFT,         26
-.equ PAD58_SHIFT,         15
+.equ PAD36_SHIFT,         17 # MISO
+.equ PAD39_SHIFT,         26 # MOSI
+.equ PAD57_SHIFT,         12 # GPIO
+.equ PAD58_SHIFT,         15 # SCK
 .equ FUNC_MASK2,          0x3
 
 .equ PADCFG_BASE,         0x120
@@ -23,6 +24,7 @@
 .equ FUNC_SPI1_MISO,      0
 .equ FUNC_SPI1_MOSI,      0
 .equ FUNC_SPI1_SCK,       0
+.equ FUNC_SPI1_GPIO,      0
 
 .equ SYS_GPI,   0x080
 
@@ -168,13 +170,33 @@ starfive_pinmux_apply_spi1_0:
    la   a0, miso_fail
    call _put_cstring
 
-4: la   a0, setting_padcfg
+4: la   a0, setting_miso
+   call _put_cstring
+
+   # GPIO (PAD 57): off 0x2ac, shift 12, func = FUNC_SPI1_GPIO
+   li      a0, FUNCSEL_OFF_B
+   li      a1, PAD57_SHIFT
+   li      a2, FUNC_SPI1_GPIO
+   call    set_func_field
+
+   # check GPIO
+   li   a0, FUNCSEL_OFF_B
+   li   a1, PAD57_SHIFT
+   call get_func_field
+   
+   li   a2, FUNC_SPI1_GPIO
+   beq  a0, a2, 5f
+
+   la   a0, gpio_fail
+   call _put_cstring
+
+5: la   a0, setting_padcfg
    call _put_cstring
 
    # PADCFG for MISO: IE | PU | SMT  (enable input, pull-up, schmitt)
-   li      a0, PAD_MISO
-   li      a1, PADCFG_IE | PADCFG_PU | PADCFG_SMT   # = 0x49
-   call    set_padcfg
+   li   a0, PAD_MISO
+   li   a1, PADCFG_IE | PADCFG_PU | PADCFG_SMT   # = 0x49
+   call set_padcfg
 
    # check that set_padcfg worked
    li   a0, PAD_MISO
@@ -184,9 +206,10 @@ starfive_pinmux_apply_spi1_0:
    la   a0, padcfg_fail
    call _put_cstring
 
-1: ld      ra, 8(sp)
-   addi    sp, sp, 16
+1: ld   ra, 8(sp)
+   addi sp, sp, 16
    ret
+
 
 .section .rodata
 setting_padcfg: .asciz "[GPIO] Setting PADCFG for MISO (enable input | pull-up | schmitt)\n\r"
@@ -197,3 +220,4 @@ setting_miso:   .asciz "[GPIO] Setting MISO function field\n\r"
 sck_fail:       .asciz "\x1b[31m[GPIO] Failed to set SCK function field\x1b[0m\n\r"
 mosi_fail:      .asciz "\x1b[31m[GPIO] Failed to set MOSI function field\x1b[0m\n\r"
 miso_fail:      .asciz "\x1b[31m[GPIO] Failed to set MISO function field\x1b[0m\n\r"
+gpio_fail:      .asciz "\x1b[31m[GPIO] Failed to set GPIO function field\x1b[0m\n\r"

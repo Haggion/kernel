@@ -3,6 +3,10 @@ package Bitwise is
    type Byte is range 0 .. 2 ** 8 - 1
       with Size => 8;
 
+   type Byte_Array is array (Natural range <>) of Byte
+      with Component_Size => 8;
+   type Byte_Array_Ptr is access Byte_Array;
+
    function Bytes_To_Four_Bytes (
       Byte1 : Byte;
       Byte2 : Byte;

@@ -33,7 +33,7 @@ package body Error_Handler is
          when OS =>
             Terminal.Clear;
             Put_String ("SYSTEM ERROR! This should not have occurred!");
-         when User =>
+         when User | Driver =>
             null;
       end case;
 
@@ -72,6 +72,8 @@ package body Error_Handler is
             Put_String ("Unknown Trap Occurred");
          when Failed_Assertion =>
             Put_String ("Failed Assertion");
+         when CrOS_EC_Error =>
+            Put_String ("CrOS EC Error Occurred");
       end case;
 
       Put_Line (Error.Message);
