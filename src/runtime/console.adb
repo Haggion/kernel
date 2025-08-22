@@ -165,7 +165,7 @@ package body Console is
             when '0' | '1' | '2' | '3' | '4'
                | '5' | '6' | '7' | '8' | '9' =>
                Args (Arg_I).Value := Int;
-               Args (Arg_I).Int_Val := Lines.Converter.Line_To_Long_Int (
+               Args (Arg_I).Int_Val := Lines.Converter.Line_To_Unknown_Base (
                   State (I)
                );
                Arg_I := Arg_I + 1;

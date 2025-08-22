@@ -68,6 +68,22 @@ package body Lines.Converter is
       Append_To_Line (Line_Builder, Ch);
    end Unsigned_To_Line_Helper;
 
+   function Line_To_Unsigned (
+      Text : Line;
+      Base : Short_Unsigned
+   ) return Long_Long_Unsigned is
+      Result : Long_Long_Unsigned := 0;
+   begin
+      for Index in Text'Range loop
+         exit when Text (Index) = Null_Ch;
+
+         Result := Result * Long_Long_Unsigned (Base);
+         Result := Result + Long_Long_Unsigned (Char_To_Digit (Text (Index)));
+      end loop;
+
+      return Result;
+   end Line_To_Unsigned;
+
    function Line_To_Long_Int (Text : Line) return Long_Integer is
       Result : Long_Integer := 0;
    begin
@@ -172,4 +188,37 @@ package body Lines.Converter is
    begin
       return Unsigned_To_Line (Num, 2);
    end Binary_To_Line;
+
+   function Line_To_Unknown_Base (Text : Line) return Long_Integer is
+   begin
+      --  if a number begins with a 0 (and isn't only a 0,)
+      --  then that means it is in a different base than base-10
+      if Text (1) = '0' and Text (2) /= Null_Ch then
+         case Text (2) is
+            when 'x' | 'X' =>
+               return Long_Integer (
+                  Line_To_Unsigned (
+                     Substring (Text, 3),
+                     16
+                  )
+               );
+            when 'b' | 'B' =>
+               return Long_Integer (
+                  Line_To_Unsigned (
+                     Substring (Text, 3),
+                     2
+                  )
+               );
+            when others =>
+               return Long_Integer (
+                  Line_To_Unsigned (
+                     Substring (Text, 2),
+                     8
+                  )
+               );
+         end case;
+      else
+         return Line_To_Long_Int (Text);
+      end if;
+   end Line_To_Unknown_Base;
 end Lines.Converter;
