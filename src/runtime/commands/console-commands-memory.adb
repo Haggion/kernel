@@ -7,15 +7,18 @@ package body Console.Commands.Memory is
       pragma Import (C, Poke_Byte, "poke_byte");
       function Poke_Word (Address : Long_Integer) return Long_Integer;
       pragma Import (C, Poke_Word, "poke_word");
+
+      Result : Return_Data;
    begin
+      Result.Succeeded := True;
+      Result.Value.Value := Int;
+
       if Args (0).Str_Val = Make_Line ("byte") then
-         Put_Int (
-            Poke_Byte (Args (1).Int_Val)
-         );
+         Result.Value.Int_Val :=
+            Poke_Byte (Args (1).Int_Val);
       elsif Args (0).Str_Val = Make_Line ("word") then
-         Put_Int (
-            Poke_Word (Args (1).Int_Val)
-         );
+         Result.Value.Int_Val :=
+            Poke_Word (Args (1).Int_Val);
       else
          Throw (
             (
@@ -31,6 +34,6 @@ package body Console.Commands.Memory is
          return Ret_Fail;
       end if;
 
-      return Ret_Void;
+      return Result;
    end Poke;
 end Console.Commands.Memory;
