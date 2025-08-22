@@ -4,6 +4,8 @@ package Error_Handler is
    type Error_Type is (
       Unknown,
       Failed_Assertion,
+      Invalid_Argument,
+      Incorrect_Type,
       --  trap errors
       Instruction_Addr_Misaligned,
       Instruction_Addr_Fault,

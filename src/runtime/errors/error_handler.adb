@@ -74,6 +74,10 @@ package body Error_Handler is
             Put_String ("Failed Assertion");
          when CrOS_EC_Error =>
             Put_String ("CrOS EC Error Occurred");
+         when Invalid_Argument =>
+            Put_String ("Invalid Argument Provided");
+         when Incorrect_Type =>
+            Put_String ("Incorrect Type");
       end case;
 
       Put_Line (Error.Message);
