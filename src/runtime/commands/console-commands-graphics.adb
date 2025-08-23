@@ -1,6 +1,36 @@
+with Error_Handler; use Error_Handler;
+
 package body Console.Commands.Graphics is
+   Draw_Cmd_Name : constant Line :=
+      Make_Line ("Console.Commands.Graphics#Draw");
+
    function Draw (Args : Arguments) return Return_Data is
+      Check : Boolean := False;
    begin
+      Check := Assert (
+         Args (0).Value = Str,
+         Make_Line (
+            "Expected first argument to be a string of the type of figure"
+         ),
+         Draw_Cmd_Name
+      ) and Assert (
+         Args (1).Value = Int,
+         Make_Line (
+            "Expected second argument to be an integer X value of a point"
+         ),
+         Draw_Cmd_Name
+      ) and Assert (
+         Args (2).Value = Int,
+         Make_Line (
+            "Expected the third argument to be an integer Y value of a point"
+         ),
+         Draw_Cmd_Name
+      );
+
+      if not Check then
+         return Ret_Fail;
+      end if;
+
       if Args (0).Str_Val = Make_Line ("rect") then
          Draw_Rectangle (
             (
