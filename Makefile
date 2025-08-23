@@ -5,10 +5,11 @@ ELF := tmp/kernel.elf
 SRC := src
 TMP := tmp
 
-GNATMAKE := riscv64-none-elf-gnatmake
-LD := riscv64-none-elf-ld
-AS := riscv64-none-elf-as
-GCC := riscv64-none-elf-gcc -mcmodel=medany
+TOOLCHAIN_PREFIX ?= riscv64-none-elf-
+GNATMAKE := $(TOOLCHAIN_PREFIX)gnatmake
+LD := $(TOOLCHAIN_PREFIX)ld
+AS := $(TOOLCHAIN_PREFIX)as
+GCC := $(TOOLCHAIN_PREFIX)gcc -mcmodel=medany
 
 ADA_DIRS := $(shell find $(SRC) -type f \( -name '*.adb' -o -name '*.ads' \) | xargs -n1 dirname | sort -u)
 ADA_INCLUDES := $(addprefix -I$(shell pwd)/, $(ADA_DIRS))
@@ -67,7 +68,7 @@ bin: all
 		mkdir build; \
 	fi
 
-	riscv64-none-elf-objcopy -O binary $(ELF) build/kernel.bin --remove-section .riscv.attributes
+	$(TOOLCHAIN_PREFIX)objcopy -O binary $(ELF) build/kernel.bin --remove-section .riscv.attributes
 
 .PHONY: runtime
 runtime:

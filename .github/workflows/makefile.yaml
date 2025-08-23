@@ -1,0 +1,17 @@
+name: Build QEMU
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: gregdavill/setup-riscv-gnu-toolchain@v2.0
+    - run: riscv-none-elf-gcc --version
+    - run: make TARGET=qemu TOOLCHAIN_PREFIX=riscv-none-elf- bin
