@@ -3,6 +3,7 @@ with Console.Commands.Term; use Console.Commands.Term;
 with Console.Commands.FS; use Console.Commands.FS;
 with Console.Commands.Math; use Console.Commands.Math;
 with Console.Commands.Graphics; use Console.Commands.Graphics;
+with Console.Commands.Memory; use Console.Commands.Memory;
 with File_System.RAM_Disk;
 with Driver_Handler; use Driver_Handler;
 with IO; use IO;
@@ -77,6 +78,15 @@ package body Console.Commands is
          return Draw (Args);
       elsif Command = Make_Line ("driver") then
          return Driver (Args);
+      elsif Command = Make_Line ("poke") then
+         return Poke (Args);
+      elsif Command = Make_Line ("wait") then
+         declare
+            procedure Delay_Milliseconds (Time : Long_Integer);
+            pragma Import (C, Delay_Milliseconds, "delay_ms");
+         begin
+            Delay_Milliseconds (Args (0).Int_Val);
+         end;
       else
          Put_String ("Unknown command:", ' ');
          Put_Line (Command);

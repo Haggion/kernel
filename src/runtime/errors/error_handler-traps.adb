@@ -10,7 +10,7 @@ package body Error_Handler.Traps is
    ) is
       Trap_Type : Error_Type;
       Error : Builtin_Error;
-      Message : aliased Line;
+      Message : aliased Line := (others => Null_Ch);
    begin
       case Cause is
          when 0 =>
