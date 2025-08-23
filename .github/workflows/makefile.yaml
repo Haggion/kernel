@@ -8,10 +8,12 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v4
-    - uses: gregdavill/setup-riscv-gnu-toolchain@v2.0
-    - run: riscv-none-elf-gcc --version
-    - run: make TARGET=qemu TOOLCHAIN_PREFIX=riscv-none-elf- bin
+    
+    - name: Setup toolchain
+      run:
+        ./scripts/make-cross-compilers.sh
+        gmake TARGET=qemu bin
