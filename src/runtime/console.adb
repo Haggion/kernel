@@ -24,22 +24,25 @@ package body Console is
 
          List := Get_List (True);
          To_Execute := Make_Str (List);
-         --  Free (List);
+         Free (List);
 
          New_Line;
 
          declare
             Status : Exec_Status := Execute_Command (To_Execute);
          begin
+            Free (To_Execute);
+
             while Status = Ongoing loop
                Put_String ("...", ' ');
 
                List := Get_List (True);
                To_Execute := Make_Str (List);
-               --  Free (List);
+               Free (List);
 
                New_Line;
                Status := Execute_Command (To_Execute);
+               Free (To_Execute);
             end loop;
 
             if Status = Failed then
@@ -128,15 +131,23 @@ package body Console is
    begin
       State (State_Index) := Make_Str (Current_State);
       State_Index := State_Index + 1;
+      Free (Current_State);
       Current_State := new Char_List;
    end Increment_State;
 
    procedure Reset_State is
    begin
+      for Part of State loop
+         exit when Part = Empty_Str;
+         Free (Part);
+      end loop;
+
       State := (others => Empty_Str);
       State_Index := 0;
       Reading_Str := False;
       Depth := 0;
+      Free (Current_State);
+      Current_State := new Char_List;
    end Reset_State;
 
    function Run_State return Exec_Status is

@@ -1,4 +1,5 @@
 with Error_Handler; use Error_Handler;
+with IO; use IO;
 
 package body Lines.List is
    function Make_Str (List : Ch_List_Ptr) return Str_Ptr is
@@ -21,8 +22,10 @@ package body Lines.List is
       List : in out Ch_List_Ptr;
       Value : Character
    ) is
-      New_Node : constant CLNP := new Char_List_Node;
+      New_Node : CLNP;
    begin
+      New_Node := new Char_List_Node;
+
       if List = null then
          List := new Char_List;
       end if;
@@ -74,4 +77,24 @@ package body Lines.List is
 
       return List.Length = 0;
    end Empty;
+
+   procedure Free (List : in out Ch_List_Ptr) is
+      Curr : CLNP;
+   begin
+      if List = null then
+         return;
+      end if;
+
+      Curr := List.First;
+      while Curr /= null loop
+         declare
+            Temp : constant CLNP := Curr.Next;
+         begin
+            Free (Curr);
+            Curr := Temp;
+         end;
+      end loop;
+
+      Free_Header (List);
+   end Free;
 end Lines.List;

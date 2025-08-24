@@ -18,6 +18,10 @@ typedef unsigned char uint8_t;
 #define false 0
 #define null 0
 
+long align16(long x) {
+    return ((x + 15) & ~((long) 15));
+}
+
 void *memcpy(void *destination, const void *source, size_t size) {
     unsigned char *d = destination;
     const unsigned char *s = source;
@@ -39,9 +43,6 @@ void *memset(void *destination, int ch, size_t size) {
     return destination;
 }
 
-#define HEAP_SIZE 0x100000
-uint8_t heap[HEAP_SIZE];
-
 typedef struct heap_block_header {
     uintptr_t start_address;
     size_t size;
@@ -51,10 +52,15 @@ typedef struct heap_block_header {
 
 static heap_block_header *initial_heap_block;
 void initalize_heap() {
-    initial_heap_block = (heap_block_header*) heap;
+    uintptr_t start = (uintptr_t)&_heap_start;
+    start = align16(start);
+    uintptr_t end = (uintptr_t)&_heap_end;
+
+    initial_heap_block = (heap_block_header*)start;
     initial_heap_block->free = true;
-    initial_heap_block->size = HEAP_SIZE;
-    initial_heap_block->start_address = (uintptr_t)&_heap_start;
+    initial_heap_block->size = (size_t)(end - start);
+    initial_heap_block->start_address = (uintptr_t)start;
+    initial_heap_block->next = null;
 }
 
 void print_heap() {
@@ -74,6 +80,9 @@ static const size_t HEADER_SIZE = sizeof(heap_block_header);
 
 heap_block_header *find_next_free_block(size_t minimum_size) {
     heap_block_header *target = initial_heap_block;
+
+    if (target == null) return null;
+
     do {
         if(target->free && target->size >= minimum_size) return target;
     } while(target = target->next);
@@ -85,20 +94,20 @@ void *malloc(size_t size) {
     // we're storing the block header in the block too, so allocate for that
     size_t real_size = size + HEADER_SIZE;
     // align size to 16
-    real_size = (real_size + 15) & ~15;
+    real_size = align16(real_size);
 
     heap_block_header *block_to_use = find_next_free_block(real_size);
     
-    if (block_to_use == 0) {
+    if (block_to_use == null) {
         _throw_error("Heap ran out of memory", "memx.c");
         return null;
     }
 
-    // if we find an adequately sized block, we split it into two parts: one allocated, one free
-    // unless, of course, it's a "perfect fit"
-    if (block_to_use->size == real_size) {
+    // if we find an adequately sized block, we split it into two parts: one allocated, one free -
+    // unless it's a perfect fit, or the new free block would be too small to store even a header
+    if (block_to_use->size - real_size < HEADER_SIZE) {
         block_to_use->free = false;
-        return (void *)block_to_use->start_address;
+        return (void *)(block_to_use->start_address + HEADER_SIZE);
     }
 
     heap_block_header *allocation = block_to_use;
@@ -116,13 +125,15 @@ void *malloc(size_t size) {
     allocation->next = remaining_memory;
 
     remaining_memory->start_address = remaining_addr;
-
     return (void *)(allocation->start_address + HEADER_SIZE);
 }
 
 void free(void *pointer) {
+    if (pointer == null) return;
+    if (initial_heap_block == null) return;
+
     heap_block_header *target = initial_heap_block;
-    heap_block_header *last_in_use_block = null;
+    heap_block_header *last_block = null;
 
     uintptr_t target_address = (uintptr_t)pointer - HEADER_SIZE;
     
@@ -131,7 +142,7 @@ void free(void *pointer) {
             break;
         }
         
-        if (!target->free) last_in_use_block = target;
+        last_block = target;
     } while (target = target->next);
 
     if (target->start_address != target_address) {
@@ -139,15 +150,21 @@ void free(void *pointer) {
         return;
     }
 
+    if (target->free) {
+        _throw_error("Target block was already free!", "memx.c");
+        return;
+    }
+
     target->free = true;
 
-    // this combines all adjacent free blocks to the left of the block we are freeing
-    if(last_in_use_block != null) {
-        target->start_address = last_in_use_block->start_address + (uintptr_t) last_in_use_block->size;
-        last_in_use_block->next = target;
-    } else {
-        // in this case, stretch block to heap start
-        target->start_address = (uintptr_t) &_heap_start;
+    // merge adjacent blocks
+    if (last_block != null && last_block->free &&
+        last_block->start_address + last_block->size == target->start_address) {
+        last_block->size += target->size;
+        last_block->next  = target->next;
+        target = last_block;
+    } else if (last_block == null) {
+        // if nothing to merge, stretch block to heap start
         initial_heap_block = target;
     }
 
@@ -198,5 +215,5 @@ void *__gnat_malloc(size_t size) {
 }
 
 void __gnat_free(void *pointer) {
-    return free(pointer);
+    free(pointer);
 }

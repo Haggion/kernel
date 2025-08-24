@@ -37,4 +37,16 @@ package Lines.List is
    );
 
    function Empty (List : Ch_List_Ptr) return Boolean;
+
+   procedure Free (List : in out Ch_List_Ptr);
+
+private
+   --  This shouldn't be used for freeing whole lists as
+   --  it doesn't delete the nodes. Use Free instead for
+   --  that.
+   procedure Free_Header is new Ada.Unchecked_Deallocation
+   (
+      Char_List,
+      Ch_List_Ptr
+   );
 end Lines.List;
