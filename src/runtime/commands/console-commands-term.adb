@@ -13,12 +13,12 @@ package body Console.Commands.Term is
       end if;
 
       declare
-         Option : constant Line := Args (0).Str_Val;
+         Option : constant Str_Ptr := Args (0).Str_Val;
          Value : constant Color_Type := Arg_To_Color (Args (1));
       begin
-         if Option = Make_Line ("font") then
+         if Option = "font" then
             Terminal.Set_Font_Color (Value);
-         elsif Option = Make_Line ("background") then
+         elsif Option = "background" then
             Terminal.Set_Background_Color (Value);
          else
             Put_String ("Invalid option");

@@ -18,6 +18,11 @@ package body Lines is
       return True;
    end "=";
 
+   function "=" (Left : Str_Ptr; Right : String) return Boolean is
+   begin
+      return Left.all = Right;
+   end "=";
+
    --  converts a string to a line
    --
    --  doesn't work implicitly since strings (usually)
@@ -90,6 +95,33 @@ package body Lines is
 
       return Line_Builder;
    end Substring;
+
+   function Str_Substring (
+      Text : Line;
+      Start_Index : Natural;
+      End_Index : Natural := 0
+   ) return Str_Ptr is
+      Len : constant Natural := Length (Text);
+      String_Builder : Str_Ptr;
+      SB_Index : Natural := 1;
+      Real_End : Natural := End_Index;
+   begin
+      if Real_End = 0 then
+         Real_End := Len;
+      end if;
+
+      String_Builder := new Str (1 .. Real_End + 1 - Start_Index);
+
+      for Index in Start_Index .. Real_End loop
+         exit when Text (Line_Index (Index)) = Null_Ch;
+
+         String_Builder (SB_Index) :=
+            Text (Line_Index (Index));
+         SB_Index := SB_Index + 1;
+      end loop;
+
+      return String_Builder;
+   end Str_Substring;
 
    function Length (Text : Line) return Natural is
    begin

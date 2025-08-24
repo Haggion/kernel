@@ -13,10 +13,10 @@ package body Console.Commands.Memory is
       Result.Succeeded := True;
       Result.Value.Value := Int;
 
-      if Args (0).Str_Val = Make_Line ("byte") then
+      if Args (0).Str_Val = "byte" then
          Result.Value.Int_Val :=
             Poke_Byte (Args (1).Int_Val);
-      elsif Args (0).Str_Val = Make_Line ("word") then
+      elsif Args (0).Str_Val = "word" then
          Result.Value.Int_Val :=
             Poke_Word (Args (1).Int_Val);
       else

@@ -21,17 +21,17 @@ package body Console.Commands.FS is
       CL : File_System.Block.File_Metadata renames Current_Location;
    begin
       --  determine link selection from argument
-      if Args (0).Str_Val = Make_Line ("") then
+      if Args (0).Str_Val = "" then
          Selection := To;
-      elsif Args (0).Str_Val = Make_Line ("to") then
+      elsif Args (0).Str_Val = "to" then
          Selection := To;
-      elsif Args (0).Str_Val = Make_Line ("from") then
+      elsif Args (0).Str_Val = "from" then
          Selection := From;
-      elsif Args (0).Str_Val = Make_Line ("category") then
+      elsif Args (0).Str_Val = "category" then
          Selection := Category;
-      elsif Args (0).Str_Val = Make_Line ("any") then
+      elsif Args (0).Str_Val = "any" then
          Selection := Any;
-      elsif Args (0).Str_Val = Make_Line ("all") then
+      elsif Args (0).Str_Val = "all" then
          Selection := Any;
       else
          Put_String ("Invalid link type");
@@ -71,7 +71,7 @@ package body Console.Commands.FS is
       Address : constant File_System.Storage_Address
          := File_System.Get_Free_Address;
    begin
-      Metadata.Name := Line_To_File_Name (Args (0).Str_Val);
+      Metadata.Name := Str_To_File_Name (Args (0).Str_Val);
 
       Metadata.Num_Links := 1;
       Metadata.Links (0).Address := Current_Address;
@@ -139,16 +139,20 @@ package body Console.Commands.FS is
 
       return Append_To_File (
          Args (0).Str_Val,
-         Length (Args (0).Str_Val)
+         Args (0).Str_Val'Length
       );
    end Append_To_File;
 
-   function Append_To_File (Text : Line; Len : Natural) return Return_Data is
+   function Append_To_File
+   (
+      Text : Str_Ptr;
+      Len : Natural
+   ) return Return_Data is
       Data : File_Bytes_Pointer;
    begin
       Data := new File_Bytes (0 .. Len - 1);
       for Index in 0 .. Len - 1 loop
-         Data (Index) := Character'Pos (Text (Line_Index (Index + 1)));
+         Data (Index) := Character'Pos (Text (Index + 1));
       end loop;
 
       Write_Data_After_Bytes (
@@ -163,15 +167,15 @@ package body Console.Commands.FS is
 
    function Append_Raw (Args : Arguments) return Return_Data is
       Append_Result : Return_Data;
+      Temp : Str_Ptr := new Lines.Str (1 .. 1);
    begin
       for Arg of Args loop
          exit when Arg.Value /= Int;
 
+         Temp (1) := Character'Val (Arg.Int_Val);
+
          Append_Result := Append_To_File (
-            (
-               Character'Val (Arg.Int_Val),
-               others => Null_Ch
-            ),
+            Temp,
             1
          );
 
@@ -185,12 +189,12 @@ package body Console.Commands.FS is
 
    function Write_To_File (Args : Arguments) return Return_Data is
       Data : File_Bytes_Pointer;
-      Text : constant Line := Args (0).Str_Val;
-      Len : constant Natural := Length (Text);
+      Text : constant Str_Ptr := Args (0).Str_Val;
+      Len : constant Natural := Text'Length;
    begin
       Data := new File_Bytes (0 .. Len - 1);
       for Index in 0 .. Len - 1 loop
-         Data (Index) := Character'Pos (Text (Line_Index (Index + 1)));
+         Data (Index) := Character'Pos (Text (Index + 1));
       end loop;
 
       Write_Data_After_Bytes (
@@ -209,11 +213,11 @@ package body Console.Commands.FS is
    begin
       Code := Read_Into_Memory (Current_Location);
 
-      if Args (0).Str_Val = Make_Line ("shell") then
+      if Args (0).Str_Val = "shell" then
          Result := Run_Shell (Code);
-      elsif Args (0).Str_Val = Make_Line ("asm") then
+      elsif Args (0).Str_Val = "asm" then
          Result := Run_Assembly (Code);
-      elsif Args (0).Str_Val = Make_Line ("") then
+      elsif Args (0).Str_Val = "" then
          Put_String ("Must specify type");
       else
          Put_String ("Unknown file type");
@@ -275,11 +279,11 @@ package body Console.Commands.FS is
          Current_Location
       );
    begin
-      if Args (0).Str_Val = Make_Line ("") then
+      if Args (0).Str_Val = "" then
          for Index in Reading'Range loop
             Put_Char (Integer (Reading (Index)));
          end loop;
-      elsif Args (0).Str_Val = Make_Line ("bytes") then
+      elsif Args (0).Str_Val = "bytes" then
          for Index in Reading'Range loop
             Put_Int (Long_Integer (Reading (Index)));
             Put_Char (' ');
@@ -300,19 +304,19 @@ package body Console.Commands.FS is
    begin
       Result.Succeeded := True;
 
-      if Args (0).Str_Val = Make_Line ("size") then
+      if Args (0).Str_Val = "size" then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Location.Size);
-      elsif Args (0).Str_Val = Make_Line ("addr") then
+      elsif Args (0).Str_Val = "addr" then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Address);
-      elsif Args (0).Str_Val = Make_Line ("data-addr") then
+      elsif Args (0).Str_Val = "data-addr" then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Location.Data_Start);
-      elsif Args (0).Str_Val = Make_Line ("num-links") then
+      elsif Args (0).Str_Val = "num-links" then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Location.Num_Links);
-      elsif Args (0).Str_Val = Make_Line ("attributes") then
+      elsif Args (0).Str_Val = "attributes" then
          Result.Value.Value := Int;
          Result.Value.Int_Val := Long_Integer (Current_Location.Attributes);
       else

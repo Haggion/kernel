@@ -35,7 +35,7 @@ package Renderer is
 
    procedure Initialize (Flush_Needed : Boolean);
 
-   function Line_To_Color (Name : Line) return Color_Type;
+   function Str_To_Color (Name : Str_Ptr) return Color_Type;
 
 private
    type Rect is record

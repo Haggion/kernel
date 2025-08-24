@@ -179,6 +179,19 @@ void free(void *pointer) {
     target->next = ending_block;
 }
 
+int memcmp(const void* left, const void* right, size_t count) {
+    const unsigned char *l = (const unsigned char*)left;
+    const unsigned char *r = (const unsigned char*)right;
+
+    for (size_t i = 0; i < count; i++) {
+        if (l[i] != r[i]) {
+            return (int)l[i] - (int)r[i];
+        }
+    }
+
+    return 0;
+}
+
 // Ada expects malloc & free to be under the names __gnat_x
 void *__gnat_malloc(size_t size) {
     return malloc(size);

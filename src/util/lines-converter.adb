@@ -221,4 +221,47 @@ package body Lines.Converter is
          return Line_To_Long_Int (Text);
       end if;
    end Line_To_Unknown_Base;
+
+   function Unsigned_To_String (
+      Num : Long_Long_Unsigned;
+      Base : Short_Unsigned
+   ) return Str_Ptr is
+      Len : constant Natural := Num_Digits (Num, Base);
+      String_Builder : constant Str_Ptr := new Str (1 .. Len);
+      Index : Natural := 0;
+      Temp : Long_Long_Unsigned := Num;
+   begin
+      while Temp > 0 loop
+         String_Builder (Len - Index) := Digit_To_Char (
+            Digit (
+               Temp mod Long_Long_Unsigned (Base)
+            )
+         );
+         Index := Index + 1;
+         Temp := Temp / Long_Long_Unsigned (Base);
+      end loop;
+
+      return String_Builder;
+   end Unsigned_To_String;
+
+   function Num_Digits (
+      Num : Long_Long_Unsigned;
+      Base : Short_Unsigned
+   ) return Natural is
+      Temp : Long_Long_Unsigned := Num;
+      Count : Natural := 1;
+   begin
+      if Base = 0 then
+         return 0;
+      elsif Base = 1 then
+         return Natural (Num);
+      end if;
+
+      while Temp >= Long_Long_Unsigned (Base) loop
+         Temp := Temp / Long_Long_Unsigned (Base);
+         Count := Count + 1;
+      end loop;
+
+      return Count;
+   end Num_Digits;
 end Lines.Converter;

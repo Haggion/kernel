@@ -143,7 +143,7 @@ package body Console is
                Put_Int (Data.Value.Int_Val);
                New_Line;
             when Str =>
-               Put_Line (Data.Value.Str_Val);
+               Put_String (Data.Value.Str_Val.all);
          end case;
          return Succeeded;
       else
@@ -153,7 +153,7 @@ package body Console is
 
    function Run_Command return Return_Data is
       I : Integer := State_Index;
-      Args : Arguments;
+      Args : Arguments := (others => (Void, 0, Empty_Str));
       Command : Line;
       Arg_I : Integer := 0;
    begin
@@ -171,19 +171,31 @@ package body Console is
                Arg_I := Arg_I + 1;
             when '"' =>
                Args (Arg_I).Value := Str;
-               Args (Arg_I).Str_Val := Substring (State (I), 2);
+               Args (Arg_I).Str_Val := Str_Substring (State (I), 2);
                Arg_I := Arg_I + 1;
             when ';' =>
                State_Index := I;
 
-               return Console.Commands.Call_Builtin (Command, Args);
+               declare
+                  Data : constant Return_Data :=
+                     Console.Commands.Call_Builtin (Command, Args);
+               begin
+                  Free_Args (Args);
+                  return Data;
+               end;
             when others =>
                State_Index := I;
 
                declare
-                  Data : constant Return_Data := Run_Command;
+                  Data : Return_Data := Run_Command;
                begin
                   if not Data.Succeeded then
+                     if Data.Value.Value = Str then
+                        Free (Data.Value.Str_Val);
+                     end if;
+
+                     Free_Args (Args);
+
                      return Ret_Fail;
                   end if;
 
@@ -197,6 +209,8 @@ package body Console is
 
          I := I + 1;
       end loop;
+
+      Free_Args (Args);
 
       return Ret_Fail;
    end Run_Command;
@@ -218,4 +232,13 @@ package body Console is
             return Suffix;
       end case;
    end Escape_Char;
+
+   procedure Free_Args (Args : in out Arguments) is
+   begin
+      for Arg of Args loop
+         if Arg.Value = Str then
+            Free (Arg.Str_Val);
+         end if;
+      end loop;
+   end Free_Args;
 end Console;

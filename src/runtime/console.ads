@@ -19,7 +19,7 @@ package Console is
    type Atom is record
       Value : Value_Type := Void;
       Int_Val : Long_Integer := 0;
-      Str_Val : Line := (others => Null_Ch);
+      Str_Val : Str_Ptr := Empty_Str;
    end record;
 
    type Arguments is array (0 .. 15) of Atom;
@@ -29,11 +29,11 @@ package Console is
    end record;
 
    Ret_Void : Return_Data := (
-      (Void, 0, (others => Null_Ch)), True
+      (Void, 0, Empty_Str), True
    );
 
    Ret_Fail : Return_Data := (
-      (Void, 0, (others => Null_Ch)), False
+      (Void, 0, Empty_Str), False
    );
 
 private
@@ -41,4 +41,6 @@ private
    function Run_Command return Return_Data;
    function Escape_Char (Suffix : Character) return Character;
    procedure Reset_State;
+
+   procedure Free_Args (Args : in out Arguments);
 end Console;

@@ -153,26 +153,26 @@ package body Renderer is
       Screen_Data.Framebuffer_Start := Driver_Handler.Framebuffer_Start;
    end Initialize;
 
-   function Line_To_Color (Name : Line) return Color_Type is
+   function Str_To_Color (Name : Str_Ptr) return Color_Type is
    begin
-      if Name = Make_Line ("red") then
+      if Name = "red" then
          return Red;
-      elsif Name = Make_Line ("orange") then
+      elsif Name = "orange" then
          return Orange;
-      elsif Name = Make_Line ("yellow") then
+      elsif Name = "yellow" then
          return Yellow;
-      elsif Name = Make_Line ("green") then
+      elsif Name = "green" then
          return Green;
-      elsif Name = Make_Line ("blue") then
+      elsif Name = "blue" then
          return Blue;
-      elsif Name = Make_Line ("purple") then
+      elsif Name = "purple" then
          return Purple;
-      elsif Name = Make_Line ("white") then
+      elsif Name = "white" then
          return White;
-      elsif Name = Make_Line ("black") then
+      elsif Name = "black" then
          return Black;
       end if;
 
       return 1;
-   end Line_To_Color;
+   end Str_To_Color;
 end Renderer;

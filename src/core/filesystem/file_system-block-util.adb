@@ -27,6 +27,18 @@ package body File_System.Block.Util is
       return File_Name_Builder;
    end Line_To_File_Name;
 
+   function Str_To_File_Name (Text : Str_Ptr) return File_Name is
+      File_Name_Builder : File_Name := (others => Character'Val (0));
+   begin
+      for Index in File_Name_Builder'Range loop
+         exit when Index + 1 not in Text'Range;
+
+         File_Name_Builder (Index) := Text (Index + 1);
+      end loop;
+
+      return File_Name_Builder;
+   end Str_To_File_Name;
+
    --  this function assumes block_address points to a valid file metadata
    function Get_File_Name (Block_Address : Storage_Address)
       return File_Name is
@@ -39,6 +51,17 @@ package body File_System.Block.Util is
    begin
       return File_Name_To_Line (Get_File_Name (Block_Address));
    end Get_File_Name_Line;
+
+   function Get_File_From_Path (
+      Current_Location : File_Metadata;
+      Path : Str_Ptr
+   ) return Search_Result is
+   begin
+      return Get_File_From_Path (
+         Current_Location,
+         Make_Line (Path.all)
+      );
+   end Get_File_From_Path;
 
    function Get_File_From_Path (
       Current_Location : File_Metadata;

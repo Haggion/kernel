@@ -2,10 +2,18 @@
 --  Used in place of strings where the string has to change size at runtime
 --  Null terminated (Character'Val (0))
 
+with Ada.Unchecked_Deallocation;
+
 package Lines is
    type Line_Index is range 1 .. 256;
    type Line is array (Line_Index) of Character;
    function "=" (Left, Right : Line) return Boolean;
+
+   subtype Str is String;
+   type Str_Ptr is access Str;
+   Empty_Str : Str_Ptr := new Str'("");
+
+   function "=" (Left : Str_Ptr; Right : String) return Boolean;
 
    function Make_Line (Text : String) return Line;
    procedure Append_To_Line (Target : access Line; Suffix : Character);
@@ -16,9 +24,17 @@ package Lines is
       Start_Index : Line_Index;
       End_Index : Line_Index := 256
    ) return Line;
+   function Str_Substring (
+      Text : Line;
+      Start_Index : Natural;
+      End_Index : Natural := 0
+   ) return Str_Ptr;
 
    Null_Ch : constant Character := Character'Val (0);
    Empty_Line : constant Line := (others => Null_Ch);
 
    function Length (Text : Line) return Natural;
+
+   procedure Free is new
+      Ada.Unchecked_Deallocation (Str, Str_Ptr);
 end Lines;
