@@ -10,77 +10,77 @@ with IO; use IO;
 
 package body Console.Commands is
    function Call_Builtin (
-      Command : Line;
+      Command : Str_Ptr;
       Args : Arguments
    ) return Return_Data is
       procedure Print_Heap;
       pragma Import (C, Print_Heap, "print_heap");
    begin
-      if Command = Make_Line ("keycode") then
+      if Command = "keycode" then
          return Keycode (Args);
-      elsif Command = Make_Line ("dh") then
+      elsif Command = "dh" then
          Print_Heap;
          return Ret_Void;
-      elsif Command = Make_Line ("echo") then
+      elsif Command = "echo" then
          return Echo (Args);
-      elsif Command = Make_Line ("dr") then
+      elsif Command = "dr" then
          File_System.RAM_Disk.Print_Disk;
          return Ret_Void;
-      elsif Command = Make_Line ("shutdown") then
+      elsif Command = "shutdown" then
          Shutdown;
-      elsif Command = Make_Line ("reboot") then
+      elsif Command = "reboot" then
          Reboot;
-      elsif Command = Make_Line ("time") then
+      elsif Command = "time" then
          return Time (Args);
-      elsif Command = Make_Line ("output") then
+      elsif Command = "output" then
          return Redirect_Output (Args);
-      elsif Command = Make_Line ("clear") then
+      elsif Command = "clear" then
          return Clear (Args);
-      elsif Command = Make_Line ("color") then
+      elsif Command = "color" then
          return Color (Args);
-      elsif Command = Make_Line ("ll") then
+      elsif Command = "ll" then
          return List_Links (Args);
-      elsif Command = Make_Line ("lnk") then
+      elsif Command = "lnk" then
          return Link_Files (Args);
-      elsif Command = Make_Line ("dlnk") then
+      elsif Command = "dlnk" then
          null;
-      elsif Command = Make_Line ("edit") then
+      elsif Command = "edit" then
          null;
-      elsif Command = Make_Line ("apnd") then
+      elsif Command = "apnd" then
          return Append_To_File (Args);
-      elsif Command = Make_Line ("apnd-raw") then
+      elsif Command = "apnd-raw" then
          return Append_Raw (Args);
-      elsif Command = Make_Line ("write") then
+      elsif Command = "write" then
          return Write_To_File (Args);
-      elsif Command = Make_Line ("read") then
+      elsif Command = "read" then
          return Read (Args);
-      elsif Command = Make_Line ("new") then
+      elsif Command = "new" then
          return New_File (Args);
-      elsif Command = Make_Line ("jmp") then
+      elsif Command = "jmp" then
          return Jump_To (Args);
-      elsif Command = Make_Line ("del") then
+      elsif Command = "del" then
          null;
-      elsif Command = Make_Line ("info") then
+      elsif Command = "info" then
          return Info (Args);
-      elsif Command = Make_Line ("run") then
+      elsif Command = "run" then
          return Run (Args);
-      elsif Command = Make_Line ("+") then
+      elsif Command = "+" then
          return Add (Args);
-      elsif Command = Make_Line ("-") then
+      elsif Command = "-" then
          return Subtract (Args);
-      elsif Command = Make_Line ("*") then
+      elsif Command = "*" then
          return Multiply (Args);
-      elsif Command = Make_Line ("/") then
+      elsif Command = "/" then
          return Divide (Args);
-      elsif Command = Make_Line ("%") then
+      elsif Command = "%" then
          return Modulus (Args);
-      elsif Command = Make_Line ("draw") then
+      elsif Command = "draw" then
          return Draw (Args);
-      elsif Command = Make_Line ("driver") then
+      elsif Command = "driver" then
          return Driver (Args);
-      elsif Command = Make_Line ("poke") then
+      elsif Command = "poke" then
          return Poke (Args);
-      elsif Command = Make_Line ("wait") then
+      elsif Command = "wait" then
          declare
             procedure Delay_Milliseconds (Time : Long_Integer);
             pragma Import (C, Delay_Milliseconds, "delay_ms");
@@ -89,7 +89,7 @@ package body Console.Commands is
          end;
       else
          Put_String ("Unknown command:", ' ');
-         Put_Line (Command);
+         Put_String (Command.all);
       end if;
 
       return Ret_Fail;

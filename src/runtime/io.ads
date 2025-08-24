@@ -1,5 +1,6 @@
 with Lines; use Lines;
 with System;
+with Lines.List; use Lines.List;
 
 package IO is
    ESC : constant Character := Character'Val (27);
@@ -59,6 +60,10 @@ package IO is
       Show_Typing : Boolean;
       S : Stream := Default_Stream
    ) return Line;
+   function Get_List (
+      Show_Typing : Boolean;
+      S : Stream := Default_Stream
+   ) return Ch_List_Ptr;
 
 private
    function UART_Get_Char return Character;

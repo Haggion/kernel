@@ -41,6 +41,16 @@ package body Lines is
       return Line_Builder;
    end Make_Line;
 
+   function Make_Str (Text : Line) return Str_Ptr is
+      Str_Builder : constant Str_Ptr := new Str (1 .. Length (Text));
+   begin
+      for Index in Str_Builder'Range loop
+         Str_Builder (Index) := Text (Line_Index (Index));
+      end loop;
+
+      return Str_Builder;
+   end Make_Str;
+
    --  replaces the first null character in
    --  the line with the specified suffix
    procedure Append_To_Line (Target : access Line; Suffix : Character) is
@@ -94,6 +104,29 @@ package body Lines is
       end loop;
 
       return Line_Builder;
+   end Substring;
+
+   function Substring (
+      Text : Str_Ptr;
+      Start_Index : Natural;
+      End_Index : Natural := 0
+   ) return Str_Ptr is
+      Str_Builder : Str_Ptr;
+      SB_Index : Natural := 1;
+      Real_End : Natural := End_Index;
+   begin
+      if Real_End = 0 then
+         Real_End := Text'Length;
+      end if;
+
+      Str_Builder := new Str (1 .. Real_End + 1 - Start_Index);
+
+      for Index in Start_Index .. Real_End loop
+         Str_Builder (SB_Index) := Text (Index);
+         SB_Index := SB_Index + 1;
+      end loop;
+
+      return Str_Builder;
    end Substring;
 
    function Str_Substring (

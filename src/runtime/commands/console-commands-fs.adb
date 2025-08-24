@@ -234,7 +234,7 @@ package body Console.Commands.FS is
    begin
       for Index in Code'Range loop
          if Code (Index) = 10 then
-            if Execute_Command (Command) = Failed then
+            if Execute_Command (Make_Str (Command)) = Failed then
                return Ret_Fail;
             end if;
             Command := (others => Null_Ch);
@@ -246,7 +246,7 @@ package body Console.Commands.FS is
       end loop;
 
       if Command (1) /= Null_Ch then
-         if Execute_Command (Command) = Failed then
+         if Execute_Command (Make_Str (Command)) = Failed then
             return Ret_Fail;
          end if;
       end if;

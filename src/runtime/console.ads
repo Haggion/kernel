@@ -11,7 +11,7 @@ package Console is
 
    type Exec_Status is (Succeeded, Failed, Ongoing);
    function Execute_Command (
-      To_Execute : Line
+      To_Execute : Str_Ptr
    ) return Exec_Status;
 
    type Value_Type is (Int, Str, Void);
@@ -41,6 +41,7 @@ private
    function Run_Command return Return_Data;
    function Escape_Char (Suffix : Character) return Character;
    procedure Reset_State;
+   procedure Increment_State;
 
    procedure Free_Args (Args : in out Arguments);
 end Console;

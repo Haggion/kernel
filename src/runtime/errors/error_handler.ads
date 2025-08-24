@@ -6,6 +6,7 @@ package Error_Handler is
       Failed_Assertion,
       Invalid_Argument,
       Incorrect_Type,
+      Index_Error,
       --  trap errors
       Instruction_Addr_Misaligned,
       Instruction_Addr_Fault,

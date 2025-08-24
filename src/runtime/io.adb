@@ -154,6 +154,38 @@ package body IO is
       return LineBuilder;
    end Get_Line;
 
+   function Get_List (
+      Show_Typing : Boolean;
+      S : Stream := Default_Stream
+   ) return Ch_List_Ptr is
+      List : Ch_List_Ptr := new Char_List;
+      Input : Character;
+   begin
+      Input := Get_Char (S);
+
+      while Character'Pos (Input) /= 13 loop
+         if Is_Backspace (Input) then
+            if List.Length >= 1 then
+               Shave (List);
+
+               if Show_Typing then
+                  Backspace (S);
+               end if;
+            end if;
+         else
+            if Show_Typing then
+               Put_Char (Input, S);
+            end if;
+
+            Append (List, Input);
+         end if;
+
+         Input := Get_Char (S);
+      end loop;
+
+      return List;
+   end Get_List;
+
    function Is_Backspace (Ch : Character) return Boolean is
    begin
       case Character'Pos (Ch) is

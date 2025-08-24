@@ -1,10 +1,12 @@
 with IO; use IO;
 with Lines.Converter;
 with Console.Commands;
+with Lines.List; use Lines.List;
 
 package body Console is
    procedure Read_Eval_Print_Loop is
-      To_Execute : Lines.Line := (others => Character'Val (0));
+      To_Execute : Str_Ptr;
+      List : Ch_List_Ptr;
    begin
       --  By default starting position is the root file
       Current_Address := File_System.Root_Address;
@@ -19,7 +21,11 @@ package body Console is
          end loop;
 
          Put_String (">", ' ');
-         To_Execute := Get_Line (True);
+
+         List := Get_List (True);
+         To_Execute := Make_Str (List);
+         --  Free (List);
+
          New_Line;
 
          declare
@@ -27,7 +33,11 @@ package body Console is
          begin
             while Status = Ongoing loop
                Put_String ("...", ' ');
-               To_Execute := Get_Line (True);
+
+               List := Get_List (True);
+               To_Execute := Make_Str (List);
+               --  Free (List);
+
                New_Line;
                Status := Execute_Command (To_Execute);
             end loop;
@@ -39,22 +49,24 @@ package body Console is
       end loop;
    end Read_Eval_Print_Loop;
 
-   type Exec_State is array (0 .. 127) of Line;
-   State : Exec_State := (others => (others => Null_Ch));
+   type Exec_State is array (0 .. 127) of Str_Ptr;
+   State : Exec_State := (others => Empty_Str);
    State_Index : Integer := 0;
-   Token_Index : Line_Index := 1;
+   Current_State : Ch_List_Ptr := new Char_List;
    Depth : Integer := 0;
    Reading_Str : Boolean := False;
    Reading_Escape_Char : Boolean := False;
-   function Execute_Command (To_Execute : Line) return Exec_Status is
+   function Execute_Command (To_Execute : Str_Ptr) return Exec_Status is
    begin
       for I in To_Execute'Range loop
          if Reading_Str then
             if Reading_Escape_Char then
-               State (State_Index) (Token_Index) := Escape_Char (
-                  To_Execute (I)
+               Append (
+                  Current_State,
+                  Escape_Char (
+                     To_Execute (I)
+                  )
                );
-               Token_Index := Token_Index + 1;
                Reading_Escape_Char := False;
             else
                if To_Execute (I) = '"' then
@@ -62,8 +74,7 @@ package body Console is
                elsif To_Execute (I) = '\' then
                   Reading_Escape_Char := True;
                else
-                  State (State_Index) (Token_Index) := To_Execute (I);
-                  Token_Index := Token_Index + 1;
+                  Append (Current_State, To_Execute (I));
                end if;
             end if;
          else
@@ -71,19 +82,17 @@ package body Console is
                case To_Execute (I) is
                   when '"' =>
                      Reading_Str := True;
-                     State (State_Index) (Token_Index) := '"';
-                     Token_Index := Token_Index + 1;
+                     Append (Current_State, '"');
                   when ';' =>
                      Depth := Depth - 1;
 
-                     if Token_Index /= 1 then
-                        State_Index := State_Index + 1;
+                     if not Empty (Current_State) then
+                        Increment_State;
                      end if;
 
-                     State (State_Index) (1) := ';';
+                     Append (Current_State, ';');
 
-                     State_Index := State_Index + 1;
-                     Token_Index := 1;
+                     Increment_State;
 
                      if Depth = 0 then
                         return Run_State;
@@ -91,12 +100,11 @@ package body Console is
                         return Failed;
                      end if;
                   when ' ' =>
-                     if Token_Index /= 1 then
-                        State_Index := State_Index + 1;
-                        Token_Index := 1;
+                     if not Empty (Current_State) then
+                        Increment_State;
                      end if;
                   when others =>
-                     if Token_Index = 1 then
+                     if Empty (Current_State) then
                         case To_Execute (I) is
                            when '0' | '1' | '2' | '3' | '4'
                               | '5' | '6' | '7' | '8' | '9'
@@ -107,8 +115,7 @@ package body Console is
                         end case;
                      end if;
 
-                     State (State_Index) (Token_Index) := To_Execute (I);
-                     Token_Index := Token_Index + 1;
+                     Append (Current_State, To_Execute (I));
                end case;
             end if;
          end if;
@@ -117,11 +124,17 @@ package body Console is
       return Ongoing;
    end Execute_Command;
 
+   procedure Increment_State is
+   begin
+      State (State_Index) := Make_Str (Current_State);
+      State_Index := State_Index + 1;
+      Current_State := new Char_List;
+   end Increment_State;
+
    procedure Reset_State is
    begin
-      State := (others => (others => Null_Ch));
+      State := (others => Empty_Str);
       State_Index := 0;
-      Token_Index := 1;
       Reading_Str := False;
       Depth := 0;
    end Reset_State;
@@ -154,7 +167,7 @@ package body Console is
    function Run_Command return Return_Data is
       I : Integer := State_Index;
       Args : Arguments := (others => (Void, 0, Empty_Str));
-      Command : Line;
+      Command : Str_Ptr;
       Arg_I : Integer := 0;
    begin
       Command := State (I);
@@ -165,13 +178,13 @@ package body Console is
             when '0' | '1' | '2' | '3' | '4'
                | '5' | '6' | '7' | '8' | '9' =>
                Args (Arg_I).Value := Int;
-               Args (Arg_I).Int_Val := Lines.Converter.Line_To_Unknown_Base (
+               Args (Arg_I).Int_Val := Lines.Converter.Str_To_Unknown_Base (
                   State (I)
                );
                Arg_I := Arg_I + 1;
             when '"' =>
                Args (Arg_I).Value := Str;
-               Args (Arg_I).Str_Val := Str_Substring (State (I), 2);
+               Args (Arg_I).Str_Val := Substring (State (I), 2);
                Arg_I := Arg_I + 1;
             when ';' =>
                State_Index := I;

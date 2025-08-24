@@ -78,6 +78,8 @@ package body Error_Handler is
             Put_String ("Invalid Argument Provided");
          when Incorrect_Type =>
             Put_String ("Incorrect Type");
+         when Index_Error =>
+            Put_String ("Index Error");
       end case;
 
       Put_Line (Error.Message);

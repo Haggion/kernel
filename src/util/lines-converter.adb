@@ -222,6 +222,39 @@ package body Lines.Converter is
       end if;
    end Line_To_Unknown_Base;
 
+   function Str_To_Unknown_Base (Text : Str_Ptr) return Long_Integer is
+   begin
+      --  if a number begins with a 0 (and isn't only a 0,)
+      --  then that means it is in a different base than base-10
+      if Text'Length > 2 and Text (1) = '0' then
+         case Text (2) is
+            when 'x' | 'X' =>
+               return Long_Integer (
+                  Str_To_Unsigned (
+                     Substring (Text, 3),
+                     16
+                  )
+               );
+            when 'b' | 'B' =>
+               return Long_Integer (
+                  Str_To_Unsigned (
+                     Substring (Text, 3),
+                     2
+                  )
+               );
+            when others =>
+               return Long_Integer (
+                  Str_To_Unsigned (
+                     Substring (Text, 2),
+                     8
+                  )
+               );
+         end case;
+      else
+         return Long_Integer (Str_To_Unsigned (Text, 10));
+      end if;
+   end Str_To_Unknown_Base;
+
    function Unsigned_To_String (
       Num : Long_Long_Unsigned;
       Base : Short_Unsigned
@@ -243,6 +276,20 @@ package body Lines.Converter is
 
       return String_Builder;
    end Unsigned_To_String;
+
+   function Str_To_Unsigned (
+      Text : Str_Ptr;
+      Base : Short_Unsigned
+   ) return Long_Long_Unsigned is
+      Result : Long_Long_Unsigned := 0;
+   begin
+      for Index in Text'Range loop
+         Result := Result * Long_Long_Unsigned (Base);
+         Result := Result + Long_Long_Unsigned (Char_To_Digit (Text (Index)));
+      end loop;
+
+      return Result;
+   end Str_To_Unsigned;
 
    function Num_Digits (
       Num : Long_Long_Unsigned;
