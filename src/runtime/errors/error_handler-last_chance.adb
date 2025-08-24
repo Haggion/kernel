@@ -15,6 +15,7 @@ package body Error_Handler.Last_Chance is
       Error.On_Line := Natural (Line);
       Error.From := Addr_To_Line (Source_Location).all;
       Error.Message := Make_Line ("Caught by last chance handler");
+      Error.Optional_Params := On_Line;
 
       Throw (Error);
    end Last_Chance_Handler;
