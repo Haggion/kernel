@@ -9,17 +9,17 @@ extern void _throw_error (char error_message[], char file_name[]);
 extern void _put_cstring (char line[]);
 extern void _put_int (long num);
 
-typedef unsigned long size_t;
-typedef unsigned long uintptr_t;
-typedef unsigned short bool;
+typedef unsigned long long size_t;
+typedef unsigned long long uintptr_t;
+typedef unsigned char bool;
 typedef unsigned char uint8_t;
 
 #define true 1
 #define false 0
 #define null 0
 
-long align16(long x) {
-    return ((x + 15) & ~((long) 15));
+size_t align16(size_t x) {
+    return ((x + 15) & ~((size_t) 15));
 }
 
 void *memcpy(void *destination, const void *source, size_t size) {
@@ -43,17 +43,22 @@ void *memset(void *destination, int ch, size_t size) {
     return destination;
 }
 
+#define HEADER_MAGIC 0xC0FFEE
+
 typedef struct heap_block_header {
     uintptr_t start_address;
     size_t size;
     bool free;
     struct heap_block_header *next;
+    unsigned magic;
 } heap_block_header;
 
+static const size_t HEADER_SIZE = sizeof(heap_block_header);
 static heap_block_header *initial_heap_block;
+
 void initalize_heap() {
     uintptr_t start = (uintptr_t)&_heap_start;
-    start = align16(start);
+    start = align16(start + HEADER_SIZE) - HEADER_SIZE;
     uintptr_t end = (uintptr_t)&_heap_end;
 
     initial_heap_block = (heap_block_header*)start;
@@ -61,9 +66,15 @@ void initalize_heap() {
     initial_heap_block->size = (size_t)(end - start);
     initial_heap_block->start_address = (uintptr_t)start;
     initial_heap_block->next = null;
+    initial_heap_block->magic = HEADER_MAGIC;
 }
 
 void print_heap() {
+    if (initial_heap_block == null) {
+        _put_cstring("==== MISSING HEAP ====\n\r");
+        return;
+    }
+
     _put_cstring("===== HEAP START =====\n\r");
     heap_block_header *curr = initial_heap_block;
     do {
@@ -75,8 +86,6 @@ void print_heap() {
     } while (curr = curr->next);
     _put_cstring("===== HEAP END =====\n\r");
 }
-
-static const size_t HEADER_SIZE = sizeof(heap_block_header);
 
 heap_block_header *find_next_free_block(size_t minimum_size) {
     heap_block_header *target = initial_heap_block;
@@ -103,6 +112,11 @@ void *malloc(size_t size) {
         return null;
     }
 
+    if (block_to_use->magic != HEADER_MAGIC) {
+        _throw_error("Block found corrupted before allocating!", "memx.c");
+        return null;
+    }
+
     // if we find an adequately sized block, we split it into two parts: one allocated, one free -
     // unless it's a perfect fit, or the new free block would be too small to store even a header
     if (block_to_use->size - real_size < HEADER_SIZE) {
@@ -125,6 +139,9 @@ void *malloc(size_t size) {
     allocation->next = remaining_memory;
 
     remaining_memory->start_address = remaining_addr;
+
+    remaining_memory->magic = HEADER_MAGIC;
+
     return (void *)(allocation->start_address + HEADER_SIZE);
 }
 
@@ -145,9 +162,13 @@ void free(void *pointer) {
         last_block = target;
     } while (target = target->next);
 
-    if (target->start_address != target_address) {
+    if (target == null || target->start_address != target_address) {
         _throw_error("Address doesn't point to start of block", "memx.c");
         return;
+    }
+
+    if (target->magic != HEADER_MAGIC) {
+        _throw_error("Block found corrupted before freeing!", "memx.c");
     }
 
     if (target->free) {
@@ -170,7 +191,7 @@ void free(void *pointer) {
 
     // if is last block in heap, stretch to fill rest
     if (target->next == null) {
-        target->size = (size_t) (_heap_end - target->start_address);
+        target->size = (size_t) ((uintptr_t) &_heap_end - target->start_address);
         return;
     }
 
@@ -197,6 +218,9 @@ void free(void *pointer) {
 }
 
 int memcmp(const void* left, const void* right, size_t count) {
+    if (count == 0) return 0;
+    if (left == null || right == null) return 0;
+
     const unsigned char *l = (const unsigned char*)left;
     const unsigned char *r = (const unsigned char*)right;
 

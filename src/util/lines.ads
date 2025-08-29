@@ -13,7 +13,8 @@ package Lines is
    type Str_Ptr is access Str;
    Null_Ch : constant Character := Character'Val (0);
    Empty_Line : constant Line := (others => Null_Ch);
-   Empty_Str : Str_Ptr := new Str'("");
+
+   Empty_Str : constant Str_Ptr := null;
 
    function "=" (Left : Str_Ptr; Right : String) return Boolean;
 

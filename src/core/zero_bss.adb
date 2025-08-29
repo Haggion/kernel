@@ -13,10 +13,10 @@ procedure Zero_BSS is
    BSS_End   : constant Address := Get_BSS_End;
 begin
    while Pointer < BSS_End loop
-      Asm ("sb zero, 0(%0)",
+      Asm ("sd zero, 0(%0)",
          Inputs  => (Address'Asm_Input ("r", Pointer)),
          Volatile => True);
 
-      Pointer := Pointer + 1;
+      Pointer := Pointer + 8;
    end loop;
 end Zero_BSS;

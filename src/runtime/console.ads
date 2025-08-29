@@ -28,11 +28,11 @@ package Console is
       Succeeded : Boolean;
    end record;
 
-   Ret_Void : Return_Data := (
+   Ret_Void : constant Return_Data := (
       (Void, 0, Empty_Str), True
    );
 
-   Ret_Fail : Return_Data := (
+   Ret_Fail : constant Return_Data := (
       (Void, 0, Empty_Str), False
    );
 
