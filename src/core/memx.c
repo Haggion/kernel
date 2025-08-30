@@ -14,6 +14,19 @@ typedef unsigned long long uintptr_t;
 typedef unsigned char bool;
 typedef unsigned char uint8_t;
 
+// if larger things need to be allocated, change typedef
+typedef unsigned block_size;
+// if heapsize changes, change typedef
+typedef unsigned block_offset;
+
+const uintptr_t heap_start = (uintptr_t) &_heap_start;
+
+#define true 1
+#define false 0
+#define null 0
+
+#define DEBUGGING false
+
 #define true 1
 #define false 0
 #define null 0
@@ -23,6 +36,7 @@ typedef unsigned char uint8_t;
 size_t align16(size_t x) {
     return ((x + 15) & ~((size_t) 15));
 }
+
 
 void *memcpy(void *destination, const void *source, size_t size) {
     unsigned char *d = destination;
@@ -48,8 +62,8 @@ void *memset(void *destination, int ch, size_t size) {
 #define HEADER_MAGIC 0xC0FFEE
 
 typedef struct heap_block_header {
-    uintptr_t start_address;
-    size_t size;
+    block_offset start_offset;
+    block_size size;
     bool free;
     struct heap_block_header *next;
     // having a magic number for heap verification is
@@ -59,18 +73,17 @@ typedef struct heap_block_header {
     #endif
 } heap_block_header;
 
-static const size_t HEADER_SIZE = sizeof(heap_block_header);
+static const block_size HEADER_SIZE = sizeof(heap_block_header);
 static heap_block_header *initial_heap_block;
 
 void initalize_heap() {
-    uintptr_t start = (uintptr_t)&_heap_start;
-    start = align16(start + HEADER_SIZE) - HEADER_SIZE;
+    uintptr_t start = align16(heap_start + HEADER_SIZE) - HEADER_SIZE;
     uintptr_t end = (uintptr_t)&_heap_end;
 
     initial_heap_block = (heap_block_header*)start;
     initial_heap_block->free = true;
-    initial_heap_block->size = (size_t)(end - start);
-    initial_heap_block->start_address = (uintptr_t)start;
+    initial_heap_block->size = (block_size)(end - start);
+    initial_heap_block->start_offset = (block_offset)(start - heap_start);
     initial_heap_block->next = null;
     #if DEBUGGING == true
         initial_heap_block->magic = HEADER_MAGIC;
@@ -87,7 +100,7 @@ void print_heap() {
     heap_block_header *curr = initial_heap_block;
     do {
         _put_cstring("Block: ");
-        _put_int((long)curr->start_address);
+        _put_int((long)curr->start_offset);
         _put_cstring(" size: ");
         _put_int(curr->size);
         _put_cstring(curr->free ? " FREE\n\r" : " USED\n\r");
@@ -95,7 +108,7 @@ void print_heap() {
     _put_cstring("===== HEAP END =====\n\r");
 }
 
-heap_block_header *find_next_free_block(size_t minimum_size) {
+heap_block_header *find_next_free_block(block_size minimum_size) {
     heap_block_header *target = initial_heap_block;
 
     if (target == null) return null;
@@ -107,9 +120,9 @@ heap_block_header *find_next_free_block(size_t minimum_size) {
     return null;
 }
 
-void *malloc(size_t size) {
+void *malloc(block_size size) {
     // we're storing the block header in the block too, so allocate for that
-    size_t real_size = size + HEADER_SIZE;
+    block_size real_size = size + HEADER_SIZE;
     // align size to 16
     real_size = align16(real_size);
 
@@ -131,12 +144,12 @@ void *malloc(size_t size) {
     // unless it's a perfect fit, or the new free block would be too small to store even a header
     if (block_to_use->size - real_size < HEADER_SIZE) {
         block_to_use->free = false;
-        return (void *)(block_to_use->start_address + HEADER_SIZE);
+        return (void *)(block_to_use->start_offset + HEADER_SIZE + heap_start);
     }
 
     heap_block_header *allocation = block_to_use;
 
-    uintptr_t remaining_addr = allocation->start_address + real_size;
+    uintptr_t remaining_addr = allocation->start_offset + real_size + heap_start;
     heap_block_header *remaining_memory = (heap_block_header *)remaining_addr;
 
     remaining_memory->size = allocation->size - real_size;
@@ -148,13 +161,13 @@ void *malloc(size_t size) {
     remaining_memory->next = allocation->next;
     allocation->next = remaining_memory;
 
-    remaining_memory->start_address = remaining_addr;
+    remaining_memory->start_offset = remaining_addr - heap_start;
 
     #if DEBUGGING == true
         remaining_memory->magic = HEADER_MAGIC;
     #endif
 
-    return (void *)(allocation->start_address + HEADER_SIZE);
+    return (void *)(allocation->start_offset + HEADER_SIZE + heap_start);
 }
 
 void free(void *pointer) {
@@ -164,17 +177,17 @@ void free(void *pointer) {
     heap_block_header *target = initial_heap_block;
     heap_block_header *last_block = null;
 
-    uintptr_t target_address = (uintptr_t)pointer - HEADER_SIZE;
+    uintptr_t target_address = (uintptr_t)pointer - HEADER_SIZE - heap_start;
     
     do {
-        if (target->start_address >= target_address) {
+        if (target->start_offset >= target_address) {
             break;
         }
         
         last_block = target;
     } while (target = target->next);
 
-    if (target == null || target->start_address != target_address) {
+    if (target == null || target->start_offset != target_address) {
         _throw_error("Address doesn't point to start of block", "memx.c");
         return;
     }
@@ -194,7 +207,7 @@ void free(void *pointer) {
 
     // merge adjacent blocks
     if (last_block != null && last_block->free &&
-        last_block->start_address + last_block->size == target->start_address) {
+        last_block->start_offset + last_block->size == target->start_offset) {
         last_block->size += target->size;
         last_block->next  = target->next;
         target = last_block;
@@ -205,7 +218,7 @@ void free(void *pointer) {
 
     // if is last block in heap, stretch to fill rest
     if (target->next == null) {
-        target->size = (size_t) ((uintptr_t) &_heap_end - target->start_address);
+        target->size = (block_size) ((uintptr_t) (&_heap_end - (heap_start + target->start_offset)));
         return;
     }
 
@@ -221,13 +234,13 @@ void free(void *pointer) {
     
     // if there were free blocks all the way until the end, then just stretch to fill rest
     if  (ending_block == null) {
-        target->size = (size_t) ((uintptr_t) &_heap_end - target->start_address);
+        target->size = (block_size) ((uintptr_t) (&_heap_end - (heap_start + target->start_offset)));
         target->next = null;
         return;
     }
 
     // have block stretch until free block reached
-    target->size = (size_t) (ending_block->start_address - target->start_address);
+    target->size = (block_size) (ending_block->start_offset - target->start_offset);
     target->next = ending_block;
 }
 
@@ -248,7 +261,7 @@ int memcmp(const void* left, const void* right, size_t count) {
 }
 
 // Ada expects malloc & free to be under the names __gnat_x
-void *__gnat_malloc(size_t size) {
+void *__gnat_malloc(block_size size) {
     return malloc(size);
 }
 
