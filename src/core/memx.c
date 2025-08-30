@@ -18,6 +18,8 @@ typedef unsigned char uint8_t;
 #define false 0
 #define null 0
 
+#define DEBUGGING false
+
 size_t align16(size_t x) {
     return ((x + 15) & ~((size_t) 15));
 }
@@ -50,7 +52,11 @@ typedef struct heap_block_header {
     size_t size;
     bool free;
     struct heap_block_header *next;
-    unsigned magic;
+    // having a magic number for heap verification is
+    // useful for debugging, but costly in storage otherwise
+    #if DEBUGGING == true
+        unsigned magic;
+    #endif
 } heap_block_header;
 
 static const size_t HEADER_SIZE = sizeof(heap_block_header);
@@ -66,7 +72,9 @@ void initalize_heap() {
     initial_heap_block->size = (size_t)(end - start);
     initial_heap_block->start_address = (uintptr_t)start;
     initial_heap_block->next = null;
-    initial_heap_block->magic = HEADER_MAGIC;
+    #if DEBUGGING == true
+        initial_heap_block->magic = HEADER_MAGIC;
+    #endif
 }
 
 void print_heap() {
@@ -112,10 +120,12 @@ void *malloc(size_t size) {
         return null;
     }
 
-    if (block_to_use->magic != HEADER_MAGIC) {
-        _throw_error("Block found corrupted before allocating!", "memx.c");
-        return null;
-    }
+    #if DEBUGGING == true
+        if (block_to_use->magic != HEADER_MAGIC) {
+            _throw_error("Block found corrupted before allocating!", "memx.c");
+            return null;
+        }
+    #endif
 
     // if we find an adequately sized block, we split it into two parts: one allocated, one free -
     // unless it's a perfect fit, or the new free block would be too small to store even a header
@@ -140,7 +150,9 @@ void *malloc(size_t size) {
 
     remaining_memory->start_address = remaining_addr;
 
-    remaining_memory->magic = HEADER_MAGIC;
+    #if DEBUGGING == true
+        remaining_memory->magic = HEADER_MAGIC;
+    #endif
 
     return (void *)(allocation->start_address + HEADER_SIZE);
 }
@@ -167,9 +179,11 @@ void free(void *pointer) {
         return;
     }
 
-    if (target->magic != HEADER_MAGIC) {
-        _throw_error("Block found corrupted before freeing!", "memx.c");
-    }
+    #if DEBUGGING == true
+        if (target->magic != HEADER_MAGIC) {
+            _throw_error("Block found corrupted before freeing!", "memx.c");
+        }
+    #endif
 
     if (target->free) {
         _throw_error("Target block was already free!", "memx.c");
