@@ -27,16 +27,9 @@ const uintptr_t heap_start = (uintptr_t) &_heap_start;
 
 #define DEBUGGING false
 
-#define true 1
-#define false 0
-#define null 0
-
-#define DEBUGGING false
-
 size_t align16(size_t x) {
     return ((x + 15) & ~((size_t) 15));
 }
-
 
 void *memcpy(void *destination, const void *source, size_t size) {
     unsigned char *d = destination;
