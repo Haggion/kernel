@@ -5,14 +5,17 @@
 extern char _heap_start;
 extern char _heap_end;
 
-extern void _throw_error (char error_message[], char file_name[]);
-extern void _put_cstring (char line[]);
-extern void _put_int (long num);
-
 typedef unsigned long long size_t;
 typedef unsigned long long uintptr_t;
 typedef unsigned char bool;
 typedef unsigned char uint8_t;
+typedef long printable_int;
+typedef unsigned long long printable_hex;
+
+extern void _throw_error (char error_message[], char file_name[]);
+extern void _put_cstring (char line[]);
+extern void _put_int (printable_int num);
+extern void _put_hex (printable_hex num);
 
 // if larger things need to be allocated, change typedef
 typedef unsigned block_size;
@@ -90,15 +93,30 @@ void print_heap() {
     }
 
     _put_cstring("===== HEAP START =====\n\r");
+    _put_cstring("Start address: ");
+    _put_hex((printable_hex) heap_start);
+    _put_cstring("\n\rHeader size: ");
+    _put_int((printable_int) HEADER_SIZE);
+    _put_cstring("\n\r\n\r");
+
+    int counter = 0;
+
     heap_block_header *curr = initial_heap_block;
     do {
-        _put_cstring("Block: ");
-        _put_int((long)curr->start_offset);
-        _put_cstring(" size: ");
-        _put_int(curr->size);
-        _put_cstring(curr->free ? " FREE\n\r" : " USED\n\r");
+        _put_cstring("Block ");
+        _put_int((printable_int) counter);
+        _put_cstring(" offset: ");
+        _put_int((printable_int) curr->start_offset);
+        _put_cstring(" | size: ");
+        _put_int((printable_int) curr->size);
+        _put_cstring(curr->free ? " | FREE\n\r" : " | USED\n\r");
+        
+        counter++;
     } while (curr = curr->next);
-    _put_cstring("===== HEAP END =====\n\r");
+    
+    _put_cstring("\n\rEnd address: ");
+    _put_hex((printable_hex) &_heap_end);
+    _put_cstring("\n\r===== HEAP END =====\n\r");
 }
 
 heap_block_header *find_next_free_block(block_size minimum_size) {

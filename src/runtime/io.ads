@@ -1,6 +1,7 @@
 with Lines; use Lines;
 with System;
 with Lines.List; use Lines.List;
+with System.Unsigned_Types; use System.Unsigned_Types;
 
 package IO is
    ESC : constant Character := Character'Val (27);
@@ -86,6 +87,9 @@ private
 
    procedure UART_Put_C_Int (Int : Long_Integer);
    pragma Export (C, UART_Put_C_Int, "_uart_put_int");
+
+   procedure Put_Hex (Number : Long_Long_Unsigned);
+   pragma Export (C, Put_Hex, "_put_hex");
 
    procedure Backspace (S : Stream := Default_Stream);
    function Is_Backspace (Ch : Character) return Boolean;

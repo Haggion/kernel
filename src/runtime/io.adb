@@ -223,4 +223,13 @@ package body IO is
    begin
       Put_Int (Adr_To_Int (Address), S);
    end Put_Address;
+
+   procedure Put_Hex (Number : Long_Long_Unsigned) is
+   begin
+      Put_String ("0x", Null_Ch);
+      Put_Line (
+         Lines.Converter.Hex_To_Line (Number),
+         End_With => Null_Ch
+      );
+   end Put_Hex;
 end IO;
