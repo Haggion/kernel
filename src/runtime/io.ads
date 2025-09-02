@@ -66,6 +66,8 @@ package IO is
       S : Stream := Default_Stream
    ) return Ch_List_Ptr;
 
+   procedure Put_Hex (Number : Long_Long_Unsigned);
+   pragma Export (C, Put_Hex, "_put_hex");
 private
    function UART_Get_Char return Character;
    pragma Import (C, UART_Get_Char, "uart_get_char");
@@ -87,9 +89,6 @@ private
 
    procedure UART_Put_C_Int (Int : Long_Integer);
    pragma Export (C, UART_Put_C_Int, "_uart_put_int");
-
-   procedure Put_Hex (Number : Long_Long_Unsigned);
-   pragma Export (C, Put_Hex, "_put_hex");
 
    procedure Backspace (S : Stream := Default_Stream);
    function Is_Backspace (Ch : Character) return Boolean;

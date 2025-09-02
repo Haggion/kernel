@@ -7,6 +7,7 @@
 with IO;
 with Terminal;
 with Renderer;
+with RamFB;
 
 package body Driver_Handler is
    procedure Init is
@@ -59,6 +60,8 @@ package body Driver_Handler is
       case Graphics_Selection is
          when 4 =>
             Graphics_Implementation := UBoot;
+         when 1 =>
+            Graphics_Implementation := QEMU;
          when others =>
             Graphics_Implementation := None;
       end case;
@@ -220,6 +223,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             UBoot_FB_Draw_Pixel (X, Y, Color);
+         when QEMU =>
+            RamFB.Draw_Pixel (X, Y, Color);
          when None =>
             null;
       end case;
@@ -234,6 +239,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             UBoot_FB_Draw_4_Pixels (X_Start, Y, Colors);
+         when QEMU =>
+            null;
          when None =>
             null;
       end case;
@@ -244,6 +251,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_Width;
+         when QEMU =>
+            return Integer (RamFB.Width);
          when None =>
             return 0;
       end case;
@@ -254,6 +263,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_Height;
+         when QEMU =>
+            return Integer (RamFB.Height);
          when None =>
             return 0;
       end case;
@@ -264,6 +275,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_Stride;
+         when QEMU =>
+            return Integer (RamFB.Stride);
          when None =>
             return 0;
       end case;
@@ -274,6 +287,8 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_BPP;
+         when QEMU =>
+            return Integer (RamFB.Stride);
          when None =>
             return 0;
       end case;
@@ -284,10 +299,57 @@ package body Driver_Handler is
       case Graphics_Implementation is
          when UBoot =>
             return UBoot_FB_Start;
+         when QEMU =>
+            return Long_Long_Unsigned (RamFB.FB_Start);
          when None =>
             return 0;
       end case;
    end Framebuffer_Start;
+
+   procedure Enable_Graphics is
+   begin
+      case Graphics_Implementation is
+         when QEMU =>
+            if RamFB.Init_Default = False then
+               IO.Put_String ("Failed to enable RAM framebuffer");
+            end if;
+         when others =>
+            null;
+      end case;
+   end Enable_Graphics;
+
+   function Graphics_Supports return Graphic_Features is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return (
+               Draw_Pixel => True,
+               Draw_4_Pixels => True
+            );
+         when QEMU =>
+            return (
+               Draw_Pixel => True,
+               Draw_4_Pixels => False
+            );
+         when None =>
+            return (
+               Draw_Pixel => False,
+               Draw_4_Pixels => False
+            );
+      end case;
+   end Graphics_Supports;
+
+   function DRM_Pixel_Format return Pixel_Format is
+   begin
+      case Graphics_Implementation is
+         when UBoot =>
+            return RG16;
+         when QEMU =>
+            return XR24;
+         when None =>
+            return None;
+      end case;
+   end DRM_Pixel_Format;
 
    procedure Flush_Address (Address : Long_Long_Unsigned) is
    begin

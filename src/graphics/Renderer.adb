@@ -47,6 +47,41 @@ package body Renderer is
       P2 : Point;
       Color : Color_Type
    ) is
+      Supports : constant Driver_Handler.Graphic_Features :=
+         Driver_Handler.Graphics_Supports;
+   begin
+      if Supports.Draw_4_Pixels then
+         Draw_Rectangle_4Pix (P1, P2, Color);
+      elsif Supports.Draw_Pixel then
+         Draw_Rectangle_1Pix (P1, P2, Color);
+      end if;
+   end Draw_Rectangle;
+
+   procedure Draw_Rectangle_1Pix (
+      P1 : Point;
+      P2 : Point;
+      Color : Color_Type
+   ) is
+      Shape : constant Rect := Points_To_Rect (P1, P2);
+   begin
+      for X in Shape.X_Min .. Shape.X_Max loop
+         for Y in Shape.Y_Min .. Shape.Y_Max loop
+            Draw_Pixel (
+               X,
+               Y,
+               Color
+            );
+         end loop;
+      end loop;
+
+      Flush_Area (P1, P2);
+   end Draw_Rectangle_1Pix;
+
+   procedure Draw_Rectangle_4Pix (
+      P1 : Point;
+      P2 : Point;
+      Color : Color_Type
+   ) is
       Shape : constant Rect := Points_To_Rect (P1, P2);
       Width : constant Integer := (Shape.X_Max - Shape.X_Min) / 4;
 
@@ -73,7 +108,7 @@ package body Renderer is
       end loop;
 
       Flush_Area (P1, P2);
-   end Draw_Rectangle;
+   end Draw_Rectangle_4Pix;
 
    procedure Draw_Pixel (
       X : Integer;
@@ -143,6 +178,9 @@ package body Renderer is
 
    procedure Initialize (Flush_Needed : Boolean) is
    begin
+      Initialize_Colors;
+      Driver_Handler.Enable_Graphics;
+
       Screen_Data.Flush_Needed := Flush_Needed;
       Screen_Data.Screen_Width := Unsigned (Driver_Handler.Screen_Width);
       Screen_Data.Screen_Height := Unsigned (Driver_Handler.Screen_Height);

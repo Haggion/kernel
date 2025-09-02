@@ -27,7 +27,7 @@ default_power:
 .global default_graphics
 .type default_graphics, @function
 default_graphics:
-   la a0, NONE
+   la a0, QEMU 
    ret
 
 .global default_cache_controller

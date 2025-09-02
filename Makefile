@@ -79,7 +79,7 @@ qemu-bin: bin
 ifeq ($(CLEAR),1)
 	clear
 endif
-	@qemu-system-riscv64 -machine virt -bios default -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M -device ramfb
+	@qemu-system-riscv64 -machine virt -bios default -device loader,file=build/kernel.bin,addr=0x80000000 -serial mon:stdio -m 256M -device ramfb -device virtio-keyboard-device
 
 qemu-elf: all
 	qemu-system-riscv64 -machine virt -bios none -kernel $(ELF) -serial mon:stdio

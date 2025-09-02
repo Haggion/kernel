@@ -116,6 +116,8 @@ package body Console.Commands.General is
                   Put_String ("None");
                when UBoot =>
                   Put_String ("UBoot");
+               when QEMU =>
+                  Put_String ("QEMU");
             end case;
          elsif Args (1).Str_Val = "cc" then
             case CC_Implementation is
@@ -166,6 +168,8 @@ package body Console.Commands.General is
                Graphics_Implementation := None;
             elsif Args (2).Str_Val = "uboot" then
                Graphics_Implementation := UBoot;
+            elsif Args (2).Str_Val = "qemu" then
+               Graphics_Implementation := QEMU;
             else
                Put_String ("Invalid driver");
             end if;

@@ -18,12 +18,9 @@ package body Terminal is
    --  CI : Line_Index := 1;
    OI : Line_Index := 1;
 
-   Font_Color : Renderer.Color_Type := 57149;
-   Background_Color : Renderer.Color_Type := 70;
-
    Row : Integer := 0;
    Col : Integer := 0;
-   Font_Scale : constant Integer := 4;
+   Font_Scale : Integer := 4;
    Font_Size : constant Integer := 5;
    Horizontal_Spacing : constant Integer := 1;
    Vertical_Spacing : constant Integer := 2;
@@ -32,8 +29,8 @@ package body Terminal is
    Col_Per_Row : Integer := 100;
    Row_Per_Col : Integer := 100;
 
-   Curr_Font_Color : Color_Type := Font_Color;
-   Curr_Background_Color : Color_Type := Background_Color;
+   Curr_Font_Color : Color_Type;
+   Curr_Background_Color : Color_Type;
 
    ESC_Code_N : Integer := 0;
 
@@ -44,10 +41,16 @@ package body Terminal is
    begin
       Terminal_Width := Driver_Handler.Screen_Width;
       Terminal_Height := Driver_Handler.Screen_Height;
+
+      Font_Scale := Terminal_Width / 500;
+
       Col_Per_Row := Terminal_Width /
          ((Font_Size + Horizontal_Spacing) * Font_Scale) - 1;
       Row_Per_Col := Terminal_Height /
          ((Font_Size + Vertical_Spacing) * Font_Scale) - 1;
+
+      Curr_Font_Color := Font_Color;
+      Curr_Background_Color := Background_Color;
    end Initialize;
 
    procedure Put_Char (
@@ -195,8 +198,8 @@ package body Terminal is
       Renderer.Draw_Rectangle (
          (0, 0),
          (
-            Driver_Handler.Screen_Width,
-            Driver_Handler.Screen_Height
+            Driver_Handler.Screen_Width - 1,
+            Driver_Handler.Screen_Height - 1
          ),
          Curr_Background_Color
       );

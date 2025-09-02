@@ -7,7 +7,7 @@ package Renderer is
       Y : Integer;
    end record;
 
-   type Color_Type is range 1 .. 2 ** 16;
+   type Color_Type is range 0 .. 2 ** 32 - 1;
 
    procedure Draw_Line (
       From : Point;
@@ -58,4 +58,18 @@ private
    Screen_Data : Screen_Data_Record;
 
    function Points_To_Rect (P1 : Point; P2 : Point) return Rect;
+
+   --  Draws a rectangle using the Draw_4_Pixels procedure for efficiency
+   procedure Draw_Rectangle_4Pix (
+      P1 : Point;
+      P2 : Point;
+      Color : Color_Type
+   );
+
+   --  Draws a rectangle using only the Draw_Pixel procedure
+   procedure Draw_Rectangle_1Pix (
+      P1 : Point;
+      P2 : Point;
+      Color : Color_Type
+   );
 end Renderer;

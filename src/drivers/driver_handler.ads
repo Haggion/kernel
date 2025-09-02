@@ -15,7 +15,7 @@ package Driver_Handler is
       StarFive, QEMU, None
    );
    type Graphics_Implementations is (
-      UBoot, None
+      UBoot, QEMU, None
    );
    type CC_Implementations is (
       StarFive, None
@@ -81,6 +81,23 @@ package Driver_Handler is
    pragma Export (C, Bytes_Per_Pixel, "bytes_per_pixel");
    function Framebuffer_Start return Long_Long_Unsigned;
    pragma Export (C, Framebuffer_Start, "framebuffer_start");
+   procedure Enable_Graphics;
+   pragma Export (C, Enable_Graphics, "enable_graphics");
+
+   type Pixel_Format is (
+      RG16, XR24, None
+   );
+
+   function DRM_Pixel_Format return Pixel_Format;
+   pragma Export (C, DRM_Pixel_Format, "pixel_format");
+
+   type Graphic_Features is record
+      Draw_Pixel : Boolean;
+      Draw_4_Pixels : Boolean;
+   end record;
+
+   function Graphics_Supports return Graphic_Features;
+   pragma Export (C, Graphics_Supports, "graphics_supports");
 
    --  cache control drivers
    procedure Flush_Address (Address : Long_Long_Unsigned);
