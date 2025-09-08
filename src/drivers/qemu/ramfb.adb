@@ -1,6 +1,5 @@
 with System; use System;
 with System.Storage_Elements; use System.Storage_Elements;
-with System.Address_To_Access_Conversions;
 with QEMU_FWCFG; use QEMU_FWCFG;
 with Lines; use Lines;
 
@@ -114,20 +113,6 @@ package body RamFB is
          Format
       );
    end Init_Default;
-
-   procedure Draw_Pixel (X : Integer; Y : Integer; Color : Integer) is
-      package U32_A2A is new
-         System.Address_To_Access_Conversions (Unsigned_32);
-
-      Offset : constant Unsigned_64 :=
-         Unsigned_64 (Y) * Unsigned_64 (Stride) +
-         Unsigned_64 (X) * Unsigned_64 (Bytes_Per_Pixel);
-
-      P : constant Address := FB_Address +
-         Storage_Offset (Integer_Address (Offset));
-   begin
-      U32_A2A.To_Pointer (P).all := Unsigned_32 (Color);
-   end Draw_Pixel;
 
    function FB_Start return Unsigned_64 is
    begin

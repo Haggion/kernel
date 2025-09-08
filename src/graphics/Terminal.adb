@@ -6,7 +6,8 @@ with Lines; use Lines;
 with Error_Handler; use Error_Handler;
 
 package body Terminal is
-   type Line_Buffer_Index is range 0 .. 99;
+   Line_Buffer_Size : constant := 100;
+   type Line_Buffer_Index is range 0 .. Line_Buffer_Size - 1;
    type Line_Buffer is array (Line_Buffer_Index) of Line;
 
    --  Command_History : Line_Buffer := (others => Empty_Line);
@@ -205,7 +206,7 @@ package body Terminal is
       Curr_OHI : Line_Buffer_Index := 0;
    begin
       Row := Row + 1;
-      OHI := (OHI + 1) mod 100;
+      OHI := (OHI + 1) mod Line_Buffer_Size;
       OI := 1;
 
       Output_History (OHI) := Empty_Line;
@@ -219,7 +220,7 @@ package body Terminal is
          for I in 0 .. Row_Per_Col - 1 loop
             Curr_OHI := Line_Buffer_Index (
                (Integer (OHI) - Row_Per_Col + I)
-               mod 100
+               mod Line_Buffer_Size
             );
 
             loop
