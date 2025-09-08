@@ -3,6 +3,7 @@ with Driver_Handler;
 with Lines.Converter;
 with Renderer.Colors; use Renderer.Colors;
 with Lines; use Lines;
+with Error_Handler; use Error_Handler;
 
 package body Terminal is
    type Line_Buffer_Index is range 0 .. 99;
@@ -33,9 +34,12 @@ package body Terminal is
    Curr_Background_Color : Color_Type;
 
    ESC_Code_N : Integer := 0;
+   ESC_Code_M : Integer := 0;
 
    type State_Type is (Normal, ESC, ESC_SEQ);
    State : State_Type := Normal;
+   Last_State : State_Type := State;
+   Collecting_N : Boolean := True;
 
    procedure Initialize is
    begin
@@ -53,27 +57,80 @@ package body Terminal is
       Curr_Background_Color := Background_Color;
    end Initialize;
 
+   --  Self_Contained refers to if the procedure
+   --  ought to do things other than rendering/parsing
+   --  the given characters
+   --  i.e., should it modify any history buffers
    procedure Put_Char (
       Ch : Character;
       Self_Contained : Boolean := True
    ) is
    begin
+      --  if the state was switched to normal from an ESC sequence,
+      --  reset N and M values
+      if State = Normal and Last_State = ESC_SEQ then
+         ESC_Code_N := 0;
+         ESC_Code_M := 0;
+      end if;
+
+      Last_State := State;
+
       if State = ESC_SEQ then
          if Self_Contained then
             Output_History (OHI) (OI) := Ch;
             OI := OI + 1;
          end if;
 
+         --  in most cases, the state is reverted to normal,
+         --  so we do this by default and only in the cases it
+         --  is not do we change it to ESC_SEQ (essentially
+         --  leaving it in the same state)
+         State := Normal;
+
          case Ch is
             when '0' | '1' | '2' | '3' | '4'
                | '5' | '6' | '7' | '8' | '9' =>
-               ESC_Code_N := ESC_Code_N
-                  * 10
-                  + Integer (
-                     Lines.Converter.Char_To_Digit (Ch)
-                  );
+               if Collecting_N then
+                  ESC_Code_N := ESC_Code_N
+                     * 10
+                     + Integer (
+                        Lines.Converter.Char_To_Digit (Ch)
+                     );
+               else
+                  ESC_Code_M := ESC_Code_M
+                     * 10
+                     + Integer (
+                        Lines.Converter.Char_To_Digit (Ch)
+                     );
+               end if;
+
+               State := ESC_SEQ;
+
+            when ';' =>
+               Collecting_N := False;
+               State := ESC_SEQ;
             when 'm' =>
                ESC_Color;
+            when 'A' =>
+               ESC_Cursor_Up;
+            when 'B' =>
+               ESC_Cursor_Down;
+            when 'C' =>
+               ESC_Cursor_Forward;
+            when 'D' =>
+               ESC_Cursor_Back;
+            when 'E' =>
+               ESC_Cursor_Next_Line;
+            when 'F' =>
+               ESC_Cursor_Prev_Line;
+            when 'G' =>
+               ESC_Cursor_Horizontal_Abs;
+            when 'H' =>
+               ESC_Cursor_Position;
+            when 'J' =>
+               ESC_Erase_In_Display;
+            when 'K' =>
+               ESC_Erase_In_Line;
             when others =>
                State := Normal;
          end case;
@@ -86,6 +143,7 @@ package body Terminal is
 
          if Ch = '[' then
             State := ESC_SEQ;
+            Collecting_N := True;
          else
             State := Normal;
          end if;
@@ -285,9 +343,6 @@ package body Terminal is
          when others =>
             null;
       end case;
-
-      State := Normal;
-      ESC_Code_N := 0;
    end ESC_Color;
 
    procedure Set_Font_Color (New_Color : Color_Type) is
@@ -301,4 +356,188 @@ package body Terminal is
       Background_Color := New_Color;
       Curr_Background_Color := Background_Color;
    end Set_Background_Color;
+
+   procedure ESC_Cursor_Up is
+   begin
+      Row := Row - ESC_Code_N;
+
+      Check_Cursor;
+   end ESC_Cursor_Up;
+
+   procedure ESC_Cursor_Down is
+   begin
+      Row := Row + ESC_Code_N;
+
+      Check_Cursor;
+   end ESC_Cursor_Down;
+
+   procedure ESC_Cursor_Forward is
+   begin
+      Col := Col + ESC_Code_N;
+
+      Check_Cursor;
+   end ESC_Cursor_Forward;
+
+   procedure ESC_Cursor_Back is
+   begin
+      Col := Col - ESC_Code_N;
+
+      Check_Cursor;
+   end ESC_Cursor_Back;
+
+   procedure ESC_Cursor_Next_Line is
+   begin
+      Col := 0;
+
+      ESC_Cursor_Down;
+   end ESC_Cursor_Next_Line;
+
+   procedure ESC_Cursor_Prev_Line is
+   begin
+      Col := 0;
+
+      ESC_Cursor_Up;
+   end ESC_Cursor_Prev_Line;
+
+   procedure ESC_Cursor_Horizontal_Abs is
+   begin
+      Col := ESC_Code_N;
+
+      Check_Cursor;
+   end ESC_Cursor_Horizontal_Abs;
+
+   procedure ESC_Cursor_Position is
+   begin
+      Row := ESC_Code_N - 1;
+      Col := ESC_Code_M - 1;
+
+      Check_Cursor;
+   end ESC_Cursor_Position;
+
+   procedure ESC_Erase_In_Display is
+   begin
+      case ESC_Code_N is
+         when 0 =>
+            --  clear everything from cursor to end of screen
+            ESC_Erase_In_Line;
+
+            if Row <= Row_Per_Col then
+               Renderer.Draw_Rectangle (
+                  (0, Terminal_Height - 1),
+                  (
+                     Terminal_Width - 1,
+                     (Row + 1) *
+                     (Font_Size + Vertical_Spacing) *
+                     Font_Scale
+                  ),
+                  Background_Color
+               );
+            end if;
+         when 1 =>
+            --  clear everything from cursor to start of screen
+            ESC_Erase_In_Line;
+
+            if Row > 0 then
+               Renderer.Draw_Rectangle (
+                  (0, 0),
+                  (
+                     Terminal_Width - 1,
+                     (Row - 1) *
+                     (Font_Size + Vertical_Spacing) *
+                     Font_Scale
+                  ),
+                  Background_Color
+               );
+            end if;
+         when 2 =>
+            --  clear entire screen, move cursor to start
+            Clear;
+         when others =>
+            Throw ((
+               Invalid_Argument,
+               Make_Line ("Expected N code to be in range 0-2 for \e[nJ"),
+               Make_Line ("Terminal#ESC_Erase_In_Display"),
+               0,
+               No_Extra,
+               User
+            ));
+      end case;
+   end ESC_Erase_In_Display;
+
+   procedure ESC_Erase_In_Line is
+   begin
+      case ESC_Code_N is
+         when 0 =>
+            --  clear to end of line
+            Renderer.Draw_Rectangle (
+               (
+                  Terminal_Width - 1,
+                  Row * (Font_Size + Vertical_Spacing) * Font_Scale
+               ),
+               (
+                  (Col *
+                  (Font_Size + Horizontal_Spacing)) *
+                  Font_Scale,
+                  ((Row + 1) *
+                  (Font_Size + Vertical_Spacing)) *
+                  Font_Scale
+               ),
+               Renderer.Colors.Background_Color
+            );
+         when 1 =>
+            --  clear to start of line
+            Renderer.Draw_Rectangle (
+               (
+                  0,
+                  Row * (Font_Size + Vertical_Spacing) * Font_Scale
+               ),
+               (
+                  (Col *
+                  (Font_Size + Horizontal_Spacing) +
+                  Font_Size) *
+                  Font_Scale,
+                  ((Row + 1) *
+                  (Font_Size + Vertical_Spacing)) *
+                  Font_Scale
+               ),
+               Renderer.Colors.Background_Color
+            );
+         when 2 =>
+            --  clear entire line
+            Renderer.Draw_Rectangle (
+               (0, Row * (Font_Size + Vertical_Spacing) * Font_Scale),
+               (
+                  Terminal_Width - 1,
+                  ((Row + 1) *
+                  (Font_Size + Vertical_Spacing)) *
+                  Font_Scale
+               ),
+               Renderer.Colors.Background_Color
+            );
+         when others =>
+            Throw ((
+               Invalid_Argument,
+               Make_Line ("Expected N code to be in range 0-2 for \e[nK"),
+               Make_Line ("Terminal#ESC_Erase_In_Line"),
+               0,
+               No_Extra,
+               User
+            ));
+      end case;
+   end ESC_Erase_In_Line;
+
+   procedure Check_Cursor is
+   begin
+      if Row > Row_Per_Col then
+         Row := Row_Per_Col;
+      elsif Row < 0 then
+         Row := 0;
+      end if;
+
+      if Col > Col_Per_Row then
+         Col := Col_Per_Row;
+      elsif Col < 0 then
+         Col := 0;
+      end if;
+   end Check_Cursor;
 end Terminal;
