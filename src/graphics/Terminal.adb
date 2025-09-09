@@ -179,8 +179,8 @@ package body Terminal is
       else
          Draw_Character (
             Ch,
-            Col * (Font_Size + Horizontal_Spacing) * Font_Scale,
-            Row * (Font_Size + Vertical_Spacing) * Font_Scale,
+            Col_Start (Col),
+            Row_Start (Row),
             Font_Scale,
             Curr_Font_Color,
             Curr_Background_Color
@@ -360,6 +360,10 @@ package body Terminal is
 
    procedure ESC_Cursor_Up is
    begin
+      if ESC_Code_N = 0 then
+         ESC_Code_N := 1;
+      end if;
+
       Row := Row - ESC_Code_N;
 
       Check_Cursor;
@@ -367,6 +371,10 @@ package body Terminal is
 
    procedure ESC_Cursor_Down is
    begin
+      if ESC_Code_N = 0 then
+         ESC_Code_N := 1;
+      end if;
+
       Row := Row + ESC_Code_N;
 
       Check_Cursor;
@@ -374,6 +382,10 @@ package body Terminal is
 
    procedure ESC_Cursor_Forward is
    begin
+      if ESC_Code_N = 0 then
+         ESC_Code_N := 1;
+      end if;
+
       Col := Col + ESC_Code_N;
 
       Check_Cursor;
@@ -381,6 +393,10 @@ package body Terminal is
 
    procedure ESC_Cursor_Back is
    begin
+      if ESC_Code_N = 0 then
+         ESC_Code_N := 1;
+      end if;
+
       Col := Col - ESC_Code_N;
 
       Check_Cursor;
@@ -427,9 +443,7 @@ package body Terminal is
                   (0, Terminal_Height - 1),
                   (
                      Terminal_Width - 1,
-                     (Row + 1) *
-                     (Font_Size + Vertical_Spacing) *
-                     Font_Scale
+                     Row_End (Row)
                   ),
                   Background_Color
                );
@@ -443,9 +457,7 @@ package body Terminal is
                   (0, 0),
                   (
                      Terminal_Width - 1,
-                     (Row - 1) *
-                     (Font_Size + Vertical_Spacing) *
-                     Font_Scale
+                     Row_End (Row - 1)
                   ),
                   Background_Color
                );
@@ -473,15 +485,11 @@ package body Terminal is
             Renderer.Draw_Rectangle (
                (
                   Terminal_Width - 1,
-                  Row * (Font_Size + Vertical_Spacing) * Font_Scale
+                  Row_Start (Row)
                ),
                (
-                  (Col *
-                  (Font_Size + Horizontal_Spacing)) *
-                  Font_Scale,
-                  ((Row + 1) *
-                  (Font_Size + Vertical_Spacing)) *
-                  Font_Scale
+                  Col_Start (Col),
+                  Row_End (Row)
                ),
                Renderer.Colors.Background_Color
             );
@@ -490,28 +498,24 @@ package body Terminal is
             Renderer.Draw_Rectangle (
                (
                   0,
-                  Row * (Font_Size + Vertical_Spacing) * Font_Scale
+                  Row_Start (Row)
                ),
                (
-                  (Col *
-                  (Font_Size + Horizontal_Spacing) +
-                  Font_Size) *
-                  Font_Scale,
-                  ((Row + 1) *
-                  (Font_Size + Vertical_Spacing)) *
-                  Font_Scale
+                  Col_End (Col),
+                  Row_End (Row)
                ),
                Renderer.Colors.Background_Color
             );
          when 2 =>
             --  clear entire line
             Renderer.Draw_Rectangle (
-               (0, Row * (Font_Size + Vertical_Spacing) * Font_Scale),
+               (
+                  0,
+                  Row_Start (Row)
+               ),
                (
                   Terminal_Width - 1,
-                  ((Row + 1) *
-                  (Font_Size + Vertical_Spacing)) *
-                  Font_Scale
+                  Row_End (Row)
                ),
                Renderer.Colors.Background_Color
             );
@@ -541,4 +545,28 @@ package body Terminal is
          Col := 0;
       end if;
    end Check_Cursor;
+
+   function Row_Start (N : Integer) return Integer is
+   begin
+      return N *
+         (Font_Size + Vertical_Spacing) *
+         Font_Scale;
+   end Row_Start;
+
+   function Row_End (N : Integer) return Integer is
+   begin
+      return Row_Start (N) + Font_Size * Font_Scale;
+   end Row_End;
+
+   function Col_Start (N : Integer) return Integer is
+   begin
+      return N *
+         (Font_Size + Horizontal_Spacing) *
+         Font_Scale;
+   end Col_Start;
+
+   function Col_End (N : Integer) return Integer is
+   begin
+      return Col_Start (N) + Font_Size * Font_Scale;
+   end Col_End;
 end Terminal;

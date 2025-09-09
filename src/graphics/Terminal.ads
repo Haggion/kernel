@@ -31,4 +31,10 @@ private
    --  checks if the cursor is within bounds,
    --  and fixes it in the case it's not
    procedure Check_Cursor;
+
+   --  for getting positions
+   function Row_Start (N : Integer) return Integer;
+   function Row_End   (N : Integer) return Integer;
+   function Col_Start (N : Integer) return Integer;
+   function Col_End   (N : Integer) return Integer;
 end Terminal;
