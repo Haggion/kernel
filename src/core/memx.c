@@ -141,6 +141,10 @@ void *malloc(block_size size) {
     
     if (block_to_use == null) {
         _throw_error("Heap ran out of memory", "memx.c");
+        _put_cstring("\n\rWas searching for a block with size ");
+        _put_int((printable_int) size);
+        _put_cstring("\n\r");
+        print_heap();
         return null;
     }
 
