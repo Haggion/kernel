@@ -9,7 +9,7 @@ package RamFB is
    pragma Export (C, Bytes_Per_Pixel, "ramfb_bytes_per_pixel");
    Stride : Unsigned_32 := 1280 * 4;
    pragma Export (C, Stride, "ramfb_stride");
-   FB_Address : System.Address := System'To_Address (16#81000000#);
+   FB_Address : System.Address := System'To_Address (16#82000F00#);
    pragma Export (C, FB_Address, "ramfb_fb_base");
    Format : Unsigned_32; --  definition delegated to init
 
