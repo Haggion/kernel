@@ -185,6 +185,10 @@ package body Console is
       I := I + 1;
 
       while I in State'Range loop
+         if State (I) = null then
+            goto Evaluate_Nested;
+         end if;
+
          case State (I) (1) is
             when '0' | '1' | '2' | '3' | '4'
                | '5' | '6' | '7' | '8' | '9' =>
@@ -208,29 +212,35 @@ package body Console is
                   return Data;
                end;
             when others =>
-               State_Index := I;
-
-               declare
-                  Data : Return_Data := Run_Command;
-               begin
-                  if not Data.Succeeded then
-                     if Data.Value.Value = Str then
-                        Free (Data.Value.Str_Val);
-                     end if;
-
-                     Free_Args (Args);
-
-                     return Ret_Fail;
-                  end if;
-
-                  Args (Arg_I) := Data.Value;
-               end;
-
-               Arg_I := Arg_I + 1;
-
-               I := State_Index;
+               goto Evaluate_Nested;
          end case;
 
+         goto Incr;
+
+         <<Evaluate_Nested>>
+         State_Index := I;
+
+         declare
+            Data : Return_Data := Run_Command;
+         begin
+            if not Data.Succeeded then
+               if Data.Value.Value = Str then
+                  Free (Data.Value.Str_Val);
+               end if;
+
+               Free_Args (Args);
+
+               return Ret_Fail;
+            end if;
+
+            Args (Arg_I) := Data.Value;
+         end;
+
+         Arg_I := Arg_I + 1;
+
+         I := State_Index;
+
+         <<Incr>>
          I := I + 1;
       end loop;
 

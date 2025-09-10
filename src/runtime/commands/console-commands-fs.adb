@@ -5,6 +5,7 @@ with Bitwise; use Bitwise;
 with System; use System;
 with Ada.Unchecked_Conversion;
 with System.Machine_Code;
+with Error_Handler; use Error_Handler;
 
 package body Console.Commands.FS is
    function List_Links (Args : Arguments) return Return_Data is
@@ -21,7 +22,7 @@ package body Console.Commands.FS is
       CL : File_System.Block.File_Metadata renames Current_Location;
    begin
       --  determine link selection from argument
-      if Args (0).Str_Val = "" then
+      if Args (0).Str_Val = null then
          Selection := To;
       elsif Args (0).Str_Val = "to" then
          Selection := To;
@@ -71,6 +72,16 @@ package body Console.Commands.FS is
       Address : constant File_System.Storage_Address
          := File_System.Get_Free_Address;
    begin
+      if Args (0).Str_Val = null then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for file name"),
+            Make_Line ("Console.Commands.FS#New_File"),
+            0, No_Extra, User
+         ));
+         return Ret_Fail;
+      end if;
+
       Metadata.Name := Str_To_File_Name (Args (0).Str_Val);
 
       Metadata.Num_Links := 1;
@@ -92,6 +103,16 @@ package body Console.Commands.FS is
    function Jump_To (Args : Arguments) return Return_Data is
       Result : Search_Result;
    begin
+      if Args (0).Str_Val = null then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for path"),
+            Make_Line ("Console.Commands.FS#Jump_To"),
+            0, No_Extra, User
+         ));
+         return Ret_Fail;
+      end if;
+
       Result := Get_File_From_Path (Current_Location, Args (0).Str_Val);
 
       if not Result.Found_Result then
@@ -110,6 +131,16 @@ package body Console.Commands.FS is
       Target : Search_Result;
       Container : File_System.Block.Link_Container;
    begin
+      if Args (0).Str_Val = null then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for path"),
+            Make_Line ("Console.Commands.FS#Link_Files"),
+            0, No_Extra, User
+         ));
+         return Ret_Fail;
+      end if;
+
       Target := Get_File_From_Path (Current_Location, Args (0).Str_Val);
 
       if not Target.Found_Result then
@@ -134,6 +165,12 @@ package body Console.Commands.FS is
    function Append_To_File (Args : Arguments) return Return_Data is
    begin
       if Args (0).Value /= Str then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for input"),
+            Make_Line ("Console.Commands.FS#Append_To_File"),
+            0, No_Extra, User
+         ));
          return Ret_Fail;
       end if;
 
@@ -189,9 +226,22 @@ package body Console.Commands.FS is
 
    function Write_To_File (Args : Arguments) return Return_Data is
       Data : File_Bytes_Pointer;
-      Text : constant Str_Ptr := Args (0).Str_Val;
-      Len : constant Natural := Text'Length;
+      Text : Str_Ptr;
+      Len : Natural;
    begin
+      if Args (0).Str_Val = null then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for input"),
+            Make_Line ("Console.Commands.FS#Write_To_File"),
+            0, No_Extra, User
+         ));
+         return Ret_Fail;
+      end if;
+
+      Text := Args (0).Str_Val;
+      Len := Text'Length;
+
       Data := new File_Bytes (0 .. Len - 1);
       for Index in 0 .. Len - 1 loop
          Data (Index) := Character'Pos (Text (Index + 1));
@@ -211,16 +261,24 @@ package body Console.Commands.FS is
       Code : File_Bytes_Pointer;
       Result : Return_Data := Ret_Fail;
    begin
+      if Args (0).Str_Val = null then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for execution method"),
+            Make_Line ("Console.Commands.FS#Run"),
+            0, No_Extra, User
+         ));
+         return Ret_Fail;
+      end if;
+
       Code := Read_Into_Memory (Current_Location);
 
       if Args (0).Str_Val = "shell" then
          Result := Run_Shell (Code);
       elsif Args (0).Str_Val = "asm" then
          Result := Run_Assembly (Code);
-      elsif Args (0).Str_Val = "" then
-         Put_String ("Must specify type");
       else
-         Put_String ("Unknown file type");
+         Put_String ("Unknown execution method");
       end if;
 
       Free (Code);
@@ -279,7 +337,7 @@ package body Console.Commands.FS is
          Current_Location
       );
    begin
-      if Args (0).Str_Val = "" then
+      if Args (0).Str_Val = null then
          for Index in Reading'Range loop
             Put_Char (Integer (Reading (Index)));
          end loop;
@@ -302,6 +360,16 @@ package body Console.Commands.FS is
    function Info (Args : Arguments) return Return_Data is
       Result : Return_Data;
    begin
+      if Args (0).Str_Val = null then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected string argument for type of info"),
+            Make_Line ("Console.Commands.FS#Info"),
+            0, No_Extra, User
+         ));
+         return Ret_Fail;
+      end if;
+
       Result.Succeeded := True;
 
       if Args (0).Str_Val = "size" then
