@@ -96,6 +96,17 @@ package body Renderer.Compositor is
             end if;
          end loop;
       end;
+
+      Flush_Area (
+         (
+            Position.X + Buffer.Position.X,
+            Position.Y + Buffer.Position.Y
+         ),
+         (
+            Position.X + Buffer.Position.X + Real_Size.X,
+            Position.Y + Buffer.Position.Y + Real_Size.Y
+         )
+      );
    end Render_Buffer_Section;
 
    function Register_New_Buffer (
