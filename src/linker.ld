@@ -7,7 +7,7 @@ PHDRS
 }
 
 MEMORY {
-   ram (rwx) : ORIGIN = 0x80000000, LENGTH = 32M
+   ram (rwx) : ORIGIN = 0x80000000, LENGTH = 64M
 }
 
 SECTIONS
@@ -34,7 +34,7 @@ SECTIONS
 	
 	.heap (NOLOAD) : ALIGN(16) {
 		_heap_start = .;
-		. = . + 0x1000000;
+		. = . + 0x2000000;
 		_heap_end = .;
 	} > ram
 
