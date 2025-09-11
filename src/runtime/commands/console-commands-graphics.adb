@@ -43,18 +43,6 @@ package body Console.Commands.Graphics is
             ),
             Arg_To_Color (Args (5))
          );
-      elsif Args (0).Str_Val = "line" then
-         Draw_Line (
-            (
-               Integer (Args (1).Int_Val),
-               Integer (Args (2).Int_Val)
-            ),
-            (
-               Integer (Args (3).Int_Val),
-               Integer (Args (4).Int_Val)
-            ),
-            Arg_To_Color (Args (5))
-         );
       elsif Args (0).Str_Val = "point" then
          Draw_Pixel (
             Integer (Args (1).Int_Val),

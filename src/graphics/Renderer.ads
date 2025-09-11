@@ -9,12 +9,6 @@ package Renderer is
 
    type Color_Type is range 0 .. 2 ** 32 - 1;
 
-   procedure Draw_Line (
-      From : Point;
-      To : Point;
-      Color : Color_Type
-   );
-
    procedure Draw_Rectangle (
       P1 : Point;
       P2 : Point;
