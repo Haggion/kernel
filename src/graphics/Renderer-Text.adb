@@ -1,10 +1,10 @@
 package body Renderer.Text is
    procedure Draw_Character (
-      Ch : Character;
-      X : Integer;
-      Y : Integer;
-      Scale : Integer;
-      Color : Color_Type;
+      Ch       : Character;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
       BG_Color : Color_Type
    ) is
    begin
@@ -18,12 +18,33 @@ package body Renderer.Text is
       );
    end Draw_Character;
 
+   procedure Draw_Character (
+      Ch       : Character;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
+      BG_Color : Color_Type;
+      ID       : Unsigned
+   ) is
+   begin
+      Draw_Bitmap_5x5 (
+         Ch_To_Bitmap (Ch),
+         X,
+         Y,
+         Scale,
+         Color,
+         BG_Color,
+         ID
+      );
+   end Draw_Character;
+
    procedure Draw_Bitmap_5x5 (
-      Bitmap : Bitmap_5x5;
-      X : Integer;
-      Y : Integer;
-      Scale : Integer;
-      Color : Color_Type;
+      Bitmap   : Bitmap_5x5;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
       BG_Color : Color_Type
    ) is
       Current_Color : Color_Type;
@@ -52,6 +73,39 @@ package body Renderer.Text is
          (X, Y + Scale * 5),
          (X + Scale * 5, Y)
       );
+   end Draw_Bitmap_5x5;
+
+   procedure Draw_Bitmap_5x5 (
+      Bitmap   : Bitmap_5x5;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
+      BG_Color : Color_Type;
+      ID       : Unsigned
+   ) is
+      Current_Color : Color_Type;
+   begin
+      for Y0 in 0 .. 4 loop
+         for X0 in 0 .. 4 loop
+            if Get_Bit (Bitmap (Y0), X0) then
+               Current_Color := Color;
+            else
+               Current_Color := BG_Color;
+            end if;
+
+            for Y1 in 0 .. Scale - 1 loop
+               for X1 in 0 .. Scale - 1 loop
+                  Draw_Pixel (
+                     X + (4 - X0) * Scale + X1,
+                     Y + Y0 * Scale + Y1,
+                     Current_Color,
+                     ID
+                  );
+               end loop;
+            end loop;
+         end loop;
+      end loop;
    end Draw_Bitmap_5x5;
 
    function Ch_To_Bitmap (Ch : Character) return Bitmap_5x5 is

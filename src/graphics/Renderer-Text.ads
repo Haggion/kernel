@@ -2,12 +2,23 @@ with Bitwise; use Bitwise;
 
 package Renderer.Text is
    procedure Draw_Character (
-      Ch : Character;
-      X : Integer;
-      Y : Integer;
-      Scale : Integer;
-      Color : Color_Type;
+      Ch       : Character;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
       BG_Color : Color_Type
+   );
+
+   --  for compositor
+   procedure Draw_Character (
+      Ch       : Character;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
+      BG_Color : Color_Type;
+      ID       : Unsigned
    );
 private
    --  this could be more storage optimized, instead
@@ -17,11 +28,22 @@ private
    function Ch_To_Bitmap (Ch : Character) return Bitmap_5x5;
 
    procedure Draw_Bitmap_5x5 (
-      Bitmap : Bitmap_5x5;
-      X : Integer;
-      Y : Integer;
-      Scale : Integer;
-      Color : Color_Type;
+      Bitmap   : Bitmap_5x5;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
       BG_Color : Color_Type
+   );
+
+   --  for compositor
+   procedure Draw_Bitmap_5x5 (
+      Bitmap   : Bitmap_5x5;
+      X        : Integer;
+      Y        : Integer;
+      Scale    : Integer;
+      Color    : Color_Type;
+      BG_Color : Color_Type;
+      ID       : Unsigned
    );
 end Renderer.Text;

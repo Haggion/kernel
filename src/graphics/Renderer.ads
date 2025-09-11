@@ -9,17 +9,38 @@ package Renderer is
 
    type Color_Type is range 0 .. 2 ** 32 - 1;
 
+   --  There are procedures for drawing straight to the
+   --  framebuffer, and for drawing to a window buffer which
+   --  is later written to the framebuffer by the compositor.
+   --  The procedures with an ID parameter are for the compositor.
+
+   --  for drawing straight to framebuffer
    procedure Draw_Rectangle (
       P1 : Point;
       P2 : Point;
       Color : Color_Type
    );
-
    procedure Draw_Pixel (
       X : Integer;
       Y : Integer;
       Color : Color_Type
    );
+   pragma Inline (Draw_Pixel);
+
+   --  for drawing to window buffer
+   procedure Draw_Rectangle (
+      P1 : Point;
+      P2 : Point;
+      Color : Color_Type;
+      ID : Unsigned
+   );
+   procedure Draw_Pixel (
+      X : Integer;
+      Y : Integer;
+      Color : Color_Type;
+      ID : Unsigned
+   );
+   pragma Inline (Draw_Pixel);
 
    procedure Flush_Area (
       P1 : Point;

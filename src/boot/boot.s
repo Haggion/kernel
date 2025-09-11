@@ -11,16 +11,14 @@ _start:
 
 	# zero bss
 	call _zero_bss
+	# initialize heap
+	call initalize_heap
 
 	# initialize drivers first so we can use UART
 	call _initialize_drivers
 
 	la a0, entered_start
    call _put_cstring
-	
-	la a0, init_heap
-   call _put_cstring
-	call initalize_heap
 
 	la a0, checking_stk
    call _put_cstring

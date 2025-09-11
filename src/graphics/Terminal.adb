@@ -4,6 +4,8 @@ with Lines.Converter;
 with Renderer.Colors; use Renderer.Colors;
 with Lines; use Lines;
 with Error_Handler; use Error_Handler;
+with System.Unsigned_Types; use System.Unsigned_Types;
+with Renderer.Compositor;
 
 package body Terminal is
    Line_Buffer_Size : constant := 100;
@@ -33,6 +35,7 @@ package body Terminal is
 
    Curr_Font_Color : Color_Type;
    Curr_Background_Color : Color_Type;
+   --  Curr_Cursor_Color : Color_Type;
 
    ESC_Code_N : Integer := 0;
    ESC_Code_M : Integer := 0;
@@ -41,6 +44,8 @@ package body Terminal is
    State : State_Type := Normal;
    Last_State : State_Type := State;
    Collecting_N : Boolean := True;
+
+   Window_ID : Unsigned;
 
    procedure Initialize is
    begin
@@ -56,6 +61,12 @@ package body Terminal is
 
       Curr_Font_Color := Font_Color;
       Curr_Background_Color := Background_Color;
+      --  Curr_Cursor_Color := Gray;
+
+      Window_ID := Renderer.Compositor.Register_New_Buffer (
+         (0, 0),
+         (Terminal_Width, Terminal_Height)
+      );
    end Initialize;
 
    --  Self_Contained refers to if the procedure
@@ -177,26 +188,40 @@ package body Terminal is
       elsif Ch = Character'Val (127) then
          null;
       else
-         Draw_Character (
-            Ch,
-            Col_Start (Col),
-            Row_Start (Row),
-            Font_Scale,
-            Curr_Font_Color,
-            Curr_Background_Color
-         );
+         declare
+            X : constant Integer := Col_Start (Col);
+            Y : constant Integer := Row_Start (Row);
+         begin
+            Draw_Character (
+               Ch,
+               X,
+               Y,
+               Font_Scale,
+               Curr_Font_Color,
+               Curr_Background_Color,
+               Window_ID
+            );
 
-         Col := Col + 1;
+            Col := Col + 1;
 
-         if Self_Contained then
-            Output_History (OHI) (OI) := Ch;
-            OI := OI + 1;
+            if Self_Contained then
+               Output_History (OHI) (OI) := Ch;
+               OI := OI + 1;
 
-            if Col > Col_Per_Row then
-               Col := 0;
-               Increment_Row;
+               if Col > Col_Per_Row then
+                  Col := 0;
+                  Increment_Row;
+               end if;
+
+               Rerender (
+                  (X, Y),
+                  (
+                     (Font_Size + Horizontal_Spacing) * Font_Scale,
+                     (Font_Size + Vertical_Spacing) * Font_Scale
+                  )
+               );
             end if;
-         end if;
+         end;
       end if;
    end Put_Char;
 
@@ -212,7 +237,7 @@ package body Terminal is
       Output_History (OHI) := Empty_Line;
 
       if Row > Row_Per_Col then
-         Clear;
+         Clear (Ought_Rerender => False);
          Row := 0;
          Col := 0;
 
@@ -242,6 +267,8 @@ package body Terminal is
 
          Col := Initial_Col;
          Row := Initial_Row;
+
+         Rerender;
       end if;
 
       if Col /= 0 then
@@ -252,7 +279,7 @@ package body Terminal is
       OI := Line_Index (Col + 1);
    end Increment_Row;
 
-   procedure Clear is
+   procedure Clear (Ought_Rerender : Boolean := True) is
    begin
       Renderer.Draw_Rectangle (
          (0, 0),
@@ -260,11 +287,16 @@ package body Terminal is
             Driver_Handler.Screen_Width - 1,
             Driver_Handler.Screen_Height - 1
          ),
-         Curr_Background_Color
+         Curr_Background_Color,
+         Window_ID
       );
 
       Row := 0;
       Col := 0;
+
+      if Ought_Rerender then
+         Rerender;
+      end if;
    end Clear;
 
    procedure ESC_Color is
@@ -445,8 +477,11 @@ package body Terminal is
                      Terminal_Width - 1,
                      Row_End (Row)
                   ),
-                  Background_Color
+                  Background_Color,
+                  Window_ID
                );
+
+               Rerender;
             end if;
          when 1 =>
             --  clear everything from cursor to start of screen
@@ -459,8 +494,11 @@ package body Terminal is
                      Terminal_Width - 1,
                      Row_End (Row - 1)
                   ),
-                  Background_Color
+                  Background_Color,
+                  Window_ID
                );
+
+               Rerender;
             end if;
          when 2 =>
             --  clear entire screen, move cursor to start
@@ -491,8 +529,11 @@ package body Terminal is
                   Col_Start (Col),
                   Row_End (Row)
                ),
-               Renderer.Colors.Background_Color
+               Renderer.Colors.Background_Color,
+               Window_ID
             );
+
+            Rerender;
          when 1 =>
             --  clear to start of line
             Renderer.Draw_Rectangle (
@@ -504,8 +545,11 @@ package body Terminal is
                   Col_End (Col),
                   Row_End (Row)
                ),
-               Renderer.Colors.Background_Color
+               Renderer.Colors.Background_Color,
+               Window_ID
             );
+
+            Rerender;
          when 2 =>
             --  clear entire line
             Renderer.Draw_Rectangle (
@@ -517,8 +561,11 @@ package body Terminal is
                   Terminal_Width - 1,
                   Row_End (Row)
                ),
-               Renderer.Colors.Background_Color
+               Renderer.Colors.Background_Color,
+               Window_ID
             );
+
+            Rerender;
          when others =>
             Throw ((
                Invalid_Argument,
@@ -569,4 +616,21 @@ package body Terminal is
    begin
       return Col_Start (N) + Font_Size * Font_Scale;
    end Col_End;
+
+   procedure Rerender is
+   begin
+      Renderer.Compositor.Render_Buffer (Window_ID);
+   end Rerender;
+
+   procedure Rerender (
+      Position : Point;
+      Size     : Point
+   ) is
+   begin
+      Renderer.Compositor.Render_Buffer_Section (
+         Position,
+         Size,
+         Window_ID
+      );
+   end Rerender;
 end Terminal;

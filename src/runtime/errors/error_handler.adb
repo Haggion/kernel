@@ -80,6 +80,10 @@ package body Error_Handler is
             Put_String ("Incorrect Type");
          when Index_Error =>
             Put_String ("Index Error");
+         when Scarcity_Error =>
+            Put_String ("Scarcity Error");
+         when Uninitialized_Error =>
+            Put_String ("Uninitialized Error");
       end case;
 
       Put_Line (Error.Message);

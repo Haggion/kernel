@@ -7,6 +7,8 @@ package Error_Handler is
       Invalid_Argument,
       Incorrect_Type,
       Index_Error,
+      Scarcity_Error,
+      Uninitialized_Error,
       --  trap errors
       Instruction_Addr_Misaligned,
       Instruction_Addr_Fault,

@@ -1,5 +1,6 @@
 with Driver_Handler;
 with Renderer.Colors; use Renderer.Colors;
+with Renderer.Compositor;
 
 package body Renderer is
    procedure Draw_Rectangle (
@@ -81,6 +82,36 @@ package body Renderer is
       );
    end Draw_Pixel;
 
+   procedure Draw_Rectangle (
+      P1 : Point;
+      P2 : Point;
+      Color : Color_Type;
+      ID : Unsigned
+   ) is
+      Shape : constant Rect := Points_To_Rect (P1, P2);
+   begin
+      for X in Shape.X_Min .. Shape.X_Max loop
+         for Y in Shape.Y_Min .. Shape.Y_Max loop
+            Renderer.Compositor.Draw_Pixel (
+               X,
+               Y,
+               Color,
+               ID
+            );
+         end loop;
+      end loop;
+   end Draw_Rectangle;
+
+   procedure Draw_Pixel (
+      X : Integer;
+      Y : Integer;
+      Color : Color_Type;
+      ID : Unsigned
+   ) is
+   begin
+      Renderer.Compositor.Draw_Pixel (X, Y, Color, ID);
+   end Draw_Pixel;
+
    procedure Flush_Area (
       P1 : Point;
       P2 : Point;
@@ -149,6 +180,8 @@ package body Renderer is
       );
       Screen_Data.Stride := Unsigned (Driver_Handler.Stride);
       Screen_Data.Framebuffer_Start := Driver_Handler.Framebuffer_Start;
+
+      Renderer.Compositor.Initialize_Compositor;
    end Initialize;
 
    function Str_To_Color (Name : Str_Ptr) return Color_Type is

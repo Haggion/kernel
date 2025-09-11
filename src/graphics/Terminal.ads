@@ -7,7 +7,7 @@ package Terminal is
       Ch : Character;
       Self_Contained : Boolean := True
    );
-   procedure Clear;
+   procedure Clear (Ought_Rerender : Boolean := True);
    procedure Initialize;
 
    procedure Set_Font_Color (New_Color : Color_Type);
@@ -37,4 +37,11 @@ private
    function Row_End   (N : Integer) return Integer;
    function Col_Start (N : Integer) return Integer;
    function Col_End   (N : Integer) return Integer;
+
+   --  sends message to compositor to rerender terminal
+   procedure Rerender;
+   procedure Rerender (
+      Position : Point;
+      Size     : Point
+   );
 end Terminal;

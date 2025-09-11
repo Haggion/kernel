@@ -34,7 +34,7 @@ SECTIONS
 	
 	.heap (NOLOAD) : ALIGN(16) {
 		_heap_start = .;
-		. = . + 0x100000;
+		. = . + 0x1000000;
 		_heap_end = .;
 	} > ram
 
