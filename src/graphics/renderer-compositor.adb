@@ -1,6 +1,9 @@
 with Error_Handler; use Error_Handler;
+with Driver_Handler;
 
 package body Renderer.Compositor is
+   package DH renames Driver_Handler;
+
    type Pixel_Array is array (Unsigned range <>) of Color_Type
       with Component_Size => 32;
    type Pixel_Array_Ptr is access Pixel_Array;
@@ -79,21 +82,135 @@ package body Renderer.Compositor is
       end if;
 
       declare
-         J : Unsigned;
-      begin
-         for I in 0 .. Unsigned (Real_Size.X * Real_Size.Y - 1) loop
-            J := ((I / Real_Size.X) + Position.Y) * Unsigned (Buffer.Size.X) +
-               I mod Real_Size.X + Unsigned (Position.X);
+         Lim : constant Unsigned := Unsigned (Real_Size.X * Real_Size.Y);
+         Features : constant DH.Graphic_Features := DH.Graphics_Supports;
+         Draw_4px : constant Boolean := Features.Draw_4_Pixels;
+         Draw_2px : constant Boolean := Features.Draw_2_Pixels;
 
-            --  ensure pixel changed
-            if Buffer.Buffer (J) /= Backbuffer (J + Offset) then
-               Backbuffer (J + Offset) := Buffer.Buffer (J);
-               Renderer.Draw_Pixel (
-                  Integer (J mod Buffer.Size.X + Buffer.Position.X),
-                  Integer (J / Buffer.Size.X + Buffer.Position.Y),
-                  Buffer.Buffer (J)
-               );
-            end if;
+         --  window frame buffer
+         WFB : constant Pixel_Array_Ptr := Buffer.Buffer;
+
+         I : Unsigned := 0;
+         X : Unsigned := 0;
+         Y : Unsigned := 0;
+         Pos_X : constant Unsigned := Unsigned (Position.X);
+         Pos_Y : constant Unsigned := Unsigned (Position.Y);
+
+         Width : constant Unsigned := Unsigned (Real_Size.X);
+         Buf_Width : constant Unsigned := Unsigned (Buffer.Size.X);
+
+         --  horrifying, I know, but Ada needs to know the
+         --  exact type of numerical constants I am using,
+         --  so here we are.
+         Four  : constant Unsigned := 4;
+         Three : constant Unsigned := 3;
+         Two   : constant Unsigned := 2;
+         One   : constant Unsigned := 1;
+      begin
+         if Draw_4px then
+            while I < Lim - 3 loop
+               declare
+                  J : constant Unsigned := (Y + Pos_Y) *
+                     Buf_Width + X + Pos_X;
+                  J_Off : constant Unsigned := J + Offset;
+                  J_FB0 : constant Color_Type := WFB (J);
+                  J_FB1 : constant Color_Type := WFB (J + One);
+                  J_FB2 : constant Color_Type := WFB (J + Two);
+                  J_FB3 : constant Color_Type := WFB (J + Three);
+               begin
+                  if
+                     J_FB0 /= Backbuffer (J_Off) or
+                     J_FB1 /= Backbuffer (J_Off + One) or
+                     J_FB2 /= Backbuffer (J_Off + Two) or
+                     J_FB3 /= Backbuffer (J_Off + Three)
+                  then
+                     Backbuffer (J_Off) := J_FB0;
+                     Backbuffer (J_Off + One) := J_FB1;
+                     Backbuffer (J_Off + Two) := J_FB2;
+                     Backbuffer (J_Off + Three) := J_FB3;
+
+                     DH.Draw_4_Pixels (
+                        Integer (X) + Buffer.Position.X + Position.X,
+                        Integer (Y) + Buffer.Position.Y + Position.Y,
+                        Long_Long_Unsigned (J_FB0) +
+                        Long_Long_Unsigned (J_FB1) * 2 ** 16 +
+                        Long_Long_Unsigned (J_FB2) * 2 ** 32 +
+                        Long_Long_Unsigned (J_FB3) * 2 ** 48
+                     );
+                  end if;
+               end;
+
+               X := X + Four;
+
+               if X >= Width then
+                  X := X - Width;
+                  Y := Y + One;
+               end if;
+
+               I := I + Four;
+            end loop;
+         end if;
+
+         if Draw_2px then
+            while I < Lim - 1 loop
+               declare
+                  J : constant Unsigned := (Y + Pos_Y) *
+                     Buf_Width + X + Pos_X;
+                  J_Off : constant Unsigned := J + Offset;
+                  J_FB0 : constant Color_Type := WFB (J);
+                  J_FB1 : constant Color_Type := WFB (J + One);
+               begin
+                  if
+                     J_FB0 /= Backbuffer (J_Off) or
+                     J_FB1 /= Backbuffer (J_Off + One)
+                  then
+                     Backbuffer (J_Off) := J_FB0;
+                     Backbuffer (J_Off + One) := J_FB1;
+
+                     DH.Draw_2_Pixels (
+                        J_Off,
+                        Integer (J_FB0),
+                        Integer (J_FB1)
+                     );
+                  end if;
+
+                  X := X + Two;
+
+                  if X >= Width then
+                     X := X - Width;
+                     Y := Y + One;
+                  end if;
+
+                  I := I + Two;
+               end;
+            end loop;
+         end if;
+
+         while I < Lim loop
+            declare
+               J : constant Unsigned := (Y + Pos_Y) *
+                     Buf_Width + X + Pos_X;
+               FB : constant Color_Type := WFB (J);
+            begin
+               --  ensure pixel changed
+               if FB /= Backbuffer (J + Offset) then
+                  Backbuffer (J + Offset) := FB;
+                  Renderer.Draw_Pixel (
+                     Integer (X) + Buffer.Position.X + Position.X,
+                     Integer (Y) + Buffer.Position.Y + Position.Y,
+                     FB
+                  );
+               end if;
+
+               X := X + One;
+
+               if X >= Width then
+                  X := 0;
+                  Y := Y + One;
+               end if;
+
+               I := I + One;
+            end;
          end loop;
       end;
 

@@ -65,6 +65,19 @@ package Driver_Handler is
       Color : Integer
    );
    pragma Export (C, Draw_Pixel, "draw_pixel");
+   procedure Draw_2_Pixels (
+      X_Start : Integer;
+      Y       : Integer;
+      Color1  : Integer;
+      Color2  : Integer
+   );
+   pragma Export (C, Draw_2_Pixels, "draw_2_pixels");
+   procedure Draw_2_Pixels (
+      Position : Unsigned;
+      Color1   : Integer;
+      Color2   : Integer
+   );
+   pragma Inline (Draw_2_Pixels);
    procedure Draw_4_Pixels (
       X_Start : Integer;
       Y : Integer;
@@ -93,6 +106,7 @@ package Driver_Handler is
 
    type Graphic_Features is record
       Draw_Pixel : Boolean;
+      Draw_2_Pixels : Boolean;
       Draw_4_Pixels : Boolean;
    end record;
 

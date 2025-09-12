@@ -230,6 +230,35 @@ package body Driver_Handler is
       end case;
    end Draw_Pixel;
 
+   procedure Draw_2_Pixels (
+      X_Start : Integer;
+      Y       : Integer;
+      Color1  : Integer;
+      Color2  : Integer
+   ) is
+   begin
+      case Graphics_Implementation is
+         when QEMU =>
+            RamFB.Draw_2_Pixels (X_Start, Y, Color1, Color2);
+         when UBoot | None =>
+            null;
+      end case;
+   end Draw_2_Pixels;
+
+   procedure Draw_2_Pixels (
+      Position : Unsigned;
+      Color1   : Integer;
+      Color2   : Integer
+   ) is
+   begin
+      case Graphics_Implementation is
+         when QEMU =>
+            RamFB.Draw_2_Pixels_Raw (Position, Color1, Color2);
+         when UBoot | None =>
+            null;
+      end case;
+   end Draw_2_Pixels;
+
    procedure Draw_4_Pixels (
       X_Start : Integer;
       Y : Integer;
@@ -324,16 +353,19 @@ package body Driver_Handler is
          when UBoot =>
             return (
                Draw_Pixel => True,
+               Draw_2_Pixels => False,
                Draw_4_Pixels => True
             );
          when QEMU =>
             return (
                Draw_Pixel => True,
+               Draw_2_Pixels => True,
                Draw_4_Pixels => False
             );
          when None =>
             return (
                Draw_Pixel => False,
+               Draw_2_Pixels => False,
                Draw_4_Pixels => False
             );
       end case;
