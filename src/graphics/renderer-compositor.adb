@@ -106,6 +106,8 @@ package body Renderer.Compositor is
          Three : constant Unsigned := 3;
          Two   : constant Unsigned := 2;
          One   : constant Unsigned := 1;
+
+         pragma Suppress (All_Checks);
       begin
          if Draw_4px then
             while I < Lim - 3 loop
