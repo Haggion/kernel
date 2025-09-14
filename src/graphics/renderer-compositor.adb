@@ -131,7 +131,7 @@ package body Renderer.Compositor is
                      Backbuffer (J_Off + Two) := J_FB2;
                      Backbuffer (J_Off + Three) := J_FB3;
 
-                     DH.Draw_4_Pixels (
+                     DH.Draw_4_Pixels.all (
                         Integer (X) + Buffer.Position.X + Position.X,
                         Integer (Y) + Buffer.Position.Y + Position.Y,
                         Long_Long_Unsigned (J_FB0) +
@@ -169,7 +169,7 @@ package body Renderer.Compositor is
                      Backbuffer (J_Off) := J_FB0;
                      Backbuffer (J_Off + One) := J_FB1;
 
-                     DH.Draw_2_Pixels (
+                     DH.Draw_2_Pixels_Raw.all (
                         J_Off,
                         Integer (J_FB0),
                         Integer (J_FB1)

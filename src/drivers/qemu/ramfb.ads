@@ -1,6 +1,6 @@
 with System;
 with Interfaces; use Interfaces;
-with System.Unsigned_Types; use System.Unsigned_Types;
+with System.Unsigned_Types;
 
 package RamFB is
    --  Properties of the framebuffer
@@ -40,7 +40,7 @@ package RamFB is
    function Init_Default return Boolean;
 
    procedure Draw_Pixel (X : Integer; Y : Integer; Color : Integer);
-   pragma Import (C, Draw_Pixel, "ramfb_draw_pixel");
+   pragma Import (Ada, Draw_Pixel, "ramfb_draw_pixel");
    pragma Inline (Draw_Pixel);
 
    --  draws two pixels in one write with SD
@@ -50,15 +50,16 @@ package RamFB is
       Color1  : Integer;
       Color2  : Integer
    );
-   pragma Import (C, Draw_2_Pixels, "ramfb_draw_2_pixels");
+   pragma Import (Ada, Draw_2_Pixels, "ramfb_draw_2_pixels");
    pragma Inline (Draw_2_Pixels);
 
    procedure Draw_2_Pixels_Raw (
-      Position : Unsigned;
+      Position : System.Unsigned_Types.Unsigned;
       Color1   : Integer;
       Color2   : Integer
    );
-   pragma Import (C, Draw_2_Pixels_Raw, "ramfb_draw_2_pixels_raw");
+   pragma Import (Ada, Draw_2_Pixels_Raw, "ramfb_draw_2_pixels_raw");
+   pragma Inline (Draw_2_Pixels_Raw);
 
    function FB_Start return Unsigned_64;
 end RamFB;

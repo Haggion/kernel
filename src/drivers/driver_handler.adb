@@ -73,12 +73,35 @@ package body Driver_Handler is
             CC_Implementation := None;
       end case;
 
+      Init_Graphics;
+
       if Graphics_Implementation /= None then
          Renderer.Initialize (Graphics_Implementation = UBoot);
          IO.Main_Stream.Output := IO.Debug;
          Terminal.Initialize;
       end if;
    end Init;
+
+   procedure Init_Graphics is
+   begin
+      case Graphics_Implementation is
+         when QEMU =>
+            Draw_Pixel        := RamFB.Draw_Pixel'Access;
+            Draw_2_Pixels_Raw := RamFB.Draw_2_Pixels_Raw'Access;
+            Draw_2_Pixels     := RamFB.Draw_2_Pixels'Access;
+            Draw_4_Pixels     := null;
+         when UBoot =>
+            Draw_Pixel        := UBoot_FB_Draw_Pixel'Access;
+            Draw_2_Pixels_Raw := null;
+            Draw_2_Pixels     := null;
+            Draw_4_Pixels     := UBoot_FB_Draw_4_Pixels'Access;
+         when None =>
+            Draw_Pixel        := null;
+            Draw_2_Pixels_Raw := null;
+            Draw_2_Pixels     := null;
+            Draw_4_Pixels     := null;
+      end case;
+   end Init_Graphics;
 
    procedure UART_Put_Char (Ch : Integer) is
    begin
@@ -213,67 +236,6 @@ package body Driver_Handler is
             null;
       end case;
    end Enable_RTC;
-
-   procedure Draw_Pixel (
-      X : Integer;
-      Y : Integer;
-      Color : Integer
-   ) is
-   begin
-      case Graphics_Implementation is
-         when UBoot =>
-            UBoot_FB_Draw_Pixel (X, Y, Color);
-         when QEMU =>
-            RamFB.Draw_Pixel (X, Y, Color);
-         when None =>
-            null;
-      end case;
-   end Draw_Pixel;
-
-   procedure Draw_2_Pixels (
-      X_Start : Integer;
-      Y       : Integer;
-      Color1  : Integer;
-      Color2  : Integer
-   ) is
-   begin
-      case Graphics_Implementation is
-         when QEMU =>
-            RamFB.Draw_2_Pixels (X_Start, Y, Color1, Color2);
-         when UBoot | None =>
-            null;
-      end case;
-   end Draw_2_Pixels;
-
-   procedure Draw_2_Pixels (
-      Position : Unsigned;
-      Color1   : Integer;
-      Color2   : Integer
-   ) is
-   begin
-      case Graphics_Implementation is
-         when QEMU =>
-            RamFB.Draw_2_Pixels_Raw (Position, Color1, Color2);
-         when UBoot | None =>
-            null;
-      end case;
-   end Draw_2_Pixels;
-
-   procedure Draw_4_Pixels (
-      X_Start : Integer;
-      Y : Integer;
-      Colors : Long_Long_Unsigned
-   ) is
-   begin
-      case Graphics_Implementation is
-         when UBoot =>
-            UBoot_FB_Draw_4_Pixels (X_Start, Y, Colors);
-         when QEMU =>
-            null;
-         when None =>
-            null;
-      end case;
-   end Draw_4_Pixels;
 
    function Screen_Width return Integer is
    begin

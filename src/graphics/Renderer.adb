@@ -54,7 +54,7 @@ package body Renderer is
    begin
       for X in 0 .. Width loop
          for Y in Shape.Y_Min .. Shape.Y_Max loop
-            Driver_Handler.Draw_4_Pixels (
+            Driver_Handler.Draw_4_Pixels.all (
                Shape.X_Min + X * 4,
                Y,
                Repeated_Color
@@ -77,7 +77,7 @@ package body Renderer is
       Color : Color_Type
    ) is
    begin
-      Driver_Handler.Draw_Pixel (
+      Driver_Handler.Draw_Pixel.all (
          X, Y, Integer (Color)
       );
    end Draw_Pixel;
