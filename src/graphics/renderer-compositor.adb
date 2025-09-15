@@ -25,6 +25,11 @@ package body Renderer.Compositor is
       Backbuffer := new Pixel_Array (0 ..
          Screen_Data.Screen_Width * Screen_Data.Screen_Height - 1
       );
+
+      --  initialize the backbuffer as black
+      for I in Backbuffer'Range loop
+         Backbuffer (I) := 0;
+      end loop;
    end Initialize_Compositor;
 
    procedure Draw_Pixel (
