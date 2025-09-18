@@ -12,6 +12,12 @@ poke_word:
    lw a0, 0(a0)
    ret
 
+.global poke_doubleword
+.type   poke_doubleword, @function
+poke_doubleword:
+   ld a0, 0(a0)
+   ret
+
 .global put_byte
 .type   put_byte, @function
 put_byte:
@@ -23,5 +29,12 @@ put_byte:
 .type   put_word, @function
 put_word:
    sw a1, 0(a0)
+   mv a0, a1
+   ret
+
+.global put_doubleword
+.type   put_doubleword, @function
+put_doubleword:
+   sd a1, 0(a0)
    mv a0, a1
    ret

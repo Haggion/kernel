@@ -7,6 +7,8 @@ package body Console.Commands.Memory is
       pragma Import (Ada, Poke_Byte, "poke_byte");
       function Poke_Word (Address : Long_Integer) return Long_Integer;
       pragma Import (Ada, Poke_Word, "poke_word");
+      function Poke_Doubleword (Address : Long_Integer) return Long_Integer;
+      pragma Import (Ada, Poke_Doubleword, "poke_doubleword");
 
       Result : Return_Data;
    begin
@@ -35,17 +37,20 @@ package body Console.Commands.Memory is
       elsif Args (0).Str_Val = "word" then
          Result.Value.Int_Val :=
             Poke_Word (Args (1).Int_Val);
+      elsif Args (0).Str_Val = "doubleword" then
+         Result.Value.Int_Val :=
+            Poke_Doubleword (Args (1).Int_Val);
       else
-         Throw (
-            (
-               Invalid_Argument,
-               Make_Line ("Expected either byte or word for first argument"),
-               Make_Line ("Poke command"),
-               0,
-               No_Extra,
-               User
-            )
-         );
+         Throw ((
+            Invalid_Argument,
+            Make_Line (
+               "Expected either byte, word or doubleword for first argument"
+            ),
+            Make_Line ("Poke command"),
+            0,
+            No_Extra,
+            User
+         ));
 
          return Ret_Fail;
       end if;
@@ -58,6 +63,8 @@ package body Console.Commands.Memory is
       pragma Import (Ada, Put_Byte, "put_byte");
       procedure Put_Word (Address : Long_Integer; Value : Long_Integer);
       pragma Import (Ada, Put_Word, "put_word");
+      procedure Put_Doubleword (Address : Long_Integer; Value : Long_Integer);
+      pragma Import (Ada, Put_Doubleword, "put_doubleword");
    begin
       if
          Args (0).Value /= Str or
@@ -86,17 +93,22 @@ package body Console.Commands.Memory is
             Args (1).Int_Val,
             Args (2).Int_Val
          );
-      else
-         Throw (
-            (
-               Invalid_Argument,
-               Make_Line ("Expected either byte or word for first argument"),
-               Make_Line ("Put command"),
-               0,
-               No_Extra,
-               User
-            )
+      elsif Args (0).Str_Val = "doubleword" then
+         Put_Doubleword (
+            Args (1).Int_Val,
+            Args (2).Int_Val
          );
+      else
+         Throw ((
+            Invalid_Argument,
+            Make_Line (
+               "Expected either byte, word, or doubleword for first argument"
+            ),
+            Make_Line ("Put command"),
+            0,
+            No_Extra,
+            User
+         ));
 
          return Ret_Fail;
       end if;
