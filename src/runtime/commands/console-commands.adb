@@ -80,6 +80,8 @@ package body Console.Commands is
          return Driver (Args);
       elsif Command = "poke" then
          return Poke (Args);
+      elsif Command = "put" then
+         return Put (Args);
       elsif Command = "wait" then
          declare
             procedure Delay_Milliseconds (Time : Long_Integer);
