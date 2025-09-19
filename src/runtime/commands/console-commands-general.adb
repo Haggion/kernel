@@ -1,5 +1,8 @@
 with Driver_Handler; use Driver_Handler;
 with IO; use IO;
+with Lines.Converter; use Lines.Converter;
+with System.Unsigned_Types; use System.Unsigned_Types;
+with Error_Handler; use Error_Handler;
 
 package body Console.Commands.General is
    function Time (Args : Arguments) return Return_Data is
@@ -192,4 +195,42 @@ package body Console.Commands.General is
 
       return Ret_Void;
    end Driver;
+
+   function Base_Convert (Args : Arguments) return Return_Data is
+   begin
+      if
+         Args (0).Value /= Int or
+         Args (1).Value /= Int
+      then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected two arguments of type int"),
+            Make_Line ("Console.Commands.General#Base_Convert"),
+            0,
+            No_Extra,
+            User
+         ));
+
+         return Ret_Fail;
+      end if;
+
+      if 2 > Args (1).Int_Val or Args (1).Int_Val > 16 then
+         Throw ((
+            Invalid_Argument,
+            Make_Line ("Base should be in range 2-16 inclusive"),
+            Make_Line ("Console.Commands.General#Base_Convert"),
+            0,
+            No_Extra,
+            User
+         ));
+
+         return Ret_Fail;
+      end if;
+
+      Put_Line (Unsigned_To_Line (
+         Long_Long_Unsigned (Args (0).Int_Val),
+         Short_Unsigned (Args (1).Int_Val)
+      ));
+      return Ret_Void;
+   end Base_Convert;
 end Console.Commands.General;
