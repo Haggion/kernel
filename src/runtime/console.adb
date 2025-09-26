@@ -60,6 +60,7 @@ package body Console is
    Reading_Str : Boolean := False;
    Reading_Escape_Char : Boolean := False;
    function Execute_Command (To_Execute : Str_Ptr) return Exec_Status is
+      Final_Value : Exec_Status;
    begin
       for I in To_Execute'Range loop
          if Reading_Str then
@@ -98,7 +99,7 @@ package body Console is
                      Increment_State;
 
                      if Depth = 0 then
-                        return Run_State;
+                        Final_Value := Run_State;
                      elsif Depth < 0 then
                         return Failed;
                      end if;
@@ -123,6 +124,10 @@ package body Console is
             end if;
          end if;
       end loop;
+
+      if Depth = 0 then
+         return Final_Value;
+      end if;
 
       return Ongoing;
    end Execute_Command;

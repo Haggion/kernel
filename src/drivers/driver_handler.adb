@@ -77,7 +77,7 @@ package body Driver_Handler is
 
       if Graphics_Implementation /= None then
          Renderer.Initialize (Graphics_Implementation = UBoot);
-         IO.Main_Stream.Output := IO.Debug;
+         IO.Main_Stream.Output := IO.Term;
          Terminal.Initialize;
       end if;
    end Init;
