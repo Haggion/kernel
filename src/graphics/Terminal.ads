@@ -38,6 +38,8 @@ private
    function Col_Start (N : Integer) return Integer;
    function Col_End   (N : Integer) return Integer;
 
+   procedure Move_Cursor (New_Col : Integer; New_Row : Integer);
+
    --  sends message to compositor to rerender terminal
    procedure Rerender;
    procedure Rerender (

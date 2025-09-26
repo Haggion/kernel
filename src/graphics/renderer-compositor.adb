@@ -1,5 +1,6 @@
 with Error_Handler; use Error_Handler;
 with Driver_Handler;
+with IO; use IO;
 
 package body Renderer.Compositor is
    package DH renames Driver_Handler;
@@ -39,7 +40,7 @@ package body Renderer.Compositor is
       ID : Unsigned
    ) is
    begin
-      Buffers (ID).Buffer (Y * Screen_Data.Screen_Width + X) := Color;
+      Buffers (ID).Buffer (Y * Unsigned (Buffers (ID).Size.X) + X) := Color;
    end Draw_Pixel;
 
    procedure Render is
@@ -51,11 +52,62 @@ package body Renderer.Compositor is
       end loop;
    end Render;
 
+   procedure Render_Buffer_Sections (
+      Abs_Position : Point;
+      Size         : Point
+   ) is
+   begin
+      for I in Buffers'Range loop
+         if Buffers (I).Initialized then
+            declare
+               B_Size : constant Point := Buffers (I).Size;
+
+               Pos : Point := (
+                  Abs_Position.X - Buffers (I).Position.X,
+                  Abs_Position.Y - Buffers (I).Position.Y
+               );
+               Siz : Point := Size;
+            begin
+               --  check that the buffer even exists at this position
+               if
+                  Pos.X + Siz.X < 0 or
+                  Pos.Y + Siz.Y < 0 or
+                  Pos.X > B_Size.X or
+                  Pos.Y > B_Size.Y
+               then
+                  goto Loop_End;
+               end if;
+
+               --  make sure our position and size are within buffer's bounds
+               if Pos.X < 0 then
+                  Siz.X := Siz.X + Pos.X;
+                  Pos.X := 0;
+               elsif Siz.X > B_Size.X then
+                  Siz.X := B_Size.X - Pos.X;
+               end if;
+
+               if Pos.Y < 0 then
+                  Siz.Y := Siz.Y + Pos.Y;
+                  Pos.Y := 0;
+               elsif Siz.Y > B_Size.Y then
+                  Siz.Y := B_Size.Y - Pos.Y;
+               end if;
+
+               Render_Buffer_Section (
+                  Pos, Siz, I
+               );
+            end;
+         end if;
+
+         <<Loop_End>>
+      end loop;
+   end Render_Buffer_Sections;
+
    procedure Render_Buffer (ID : Unsigned) is
    begin
       Render_Buffer_Section (
          (0, 0),
-         (0, 0),
+         Buffers (ID).Size,
          ID
       );
    end Render_Buffer;
@@ -66,8 +118,6 @@ package body Renderer.Compositor is
       ID       : Unsigned
    ) is
       Buffer : constant Window_Buffer := Buffers (ID);
-      Offset : constant Unsigned := Buffer.Position.X +
-         Buffer.Position.Y * Screen_Data.Screen_Width;
 
       Real_Size : Point := Size;
    begin
@@ -104,6 +154,14 @@ package body Renderer.Compositor is
          Width : constant Unsigned := Unsigned (Real_Size.X);
          Buf_Width : constant Unsigned := Unsigned (Buffer.Size.X);
 
+         Scr_Width : constant Unsigned := Screen_Data.Screen_Width;
+         B_Pos_X   : constant Unsigned := Unsigned (
+            Buffer.Position.X + Position.X
+         );
+         B_Pos_Y   : constant Unsigned := Unsigned (
+            Buffer.Position.Y + Position.Y
+         );
+
          --  horrifying, I know, but Ada needs to know the
          --  exact type of numerical constants I am using,
          --  so here we are.
@@ -111,38 +169,40 @@ package body Renderer.Compositor is
          Three : constant Unsigned := 3;
          Two   : constant Unsigned := 2;
          One   : constant Unsigned := 1;
+         Zero  : constant Unsigned := 0;
 
-         pragma Suppress (All_Checks);
+         --  pragma Suppress (All_Checks);
       begin
          if Draw_4px then
             while I < Lim - 3 loop
                declare
-                  J : constant Unsigned := (Y + Pos_Y) *
-                     Buf_Width + X + Pos_X;
-                  J_Off : constant Unsigned := J + Offset;
-                  J_FB0 : constant Color_Type := WFB (J);
-                  J_FB1 : constant Color_Type := WFB (J + One);
-                  J_FB2 : constant Color_Type := WFB (J + Two);
-                  J_FB3 : constant Color_Type := WFB (J + Three);
+                  Src : constant Unsigned :=
+                     (Y + Pos_Y) * Buf_Width + (X + Pos_X);
+                  Dst : constant Unsigned :=
+                     (Y + B_Pos_Y) * Scr_Width + (X + B_Pos_X);
+
+                  C0  : constant Color_Type := WFB (Src + Zero);
+                  C1  : constant Color_Type := WFB (Src + One);
+                  C2  : constant Color_Type := WFB (Src + Two);
+                  C3  : constant Color_Type := WFB (Src + Three);
                begin
-                  if
-                     J_FB0 /= Backbuffer (J_Off) or
-                     J_FB1 /= Backbuffer (J_Off + One) or
-                     J_FB2 /= Backbuffer (J_Off + Two) or
-                     J_FB3 /= Backbuffer (J_Off + Three)
+                  if C0 /= Backbuffer (Dst + Zero)
+                  or C1 /= Backbuffer (Dst + One)
+                  or C2 /= Backbuffer (Dst + Two)
+                  or C3 /= Backbuffer (Dst + Three)
                   then
-                     Backbuffer (J_Off) := J_FB0;
-                     Backbuffer (J_Off + One) := J_FB1;
-                     Backbuffer (J_Off + Two) := J_FB2;
-                     Backbuffer (J_Off + Three) := J_FB3;
+                     Backbuffer (Dst + Zero) := C0;
+                     Backbuffer (Dst + One) := C1;
+                     Backbuffer (Dst + Two) := C2;
+                     Backbuffer (Dst + Three) := C3;
 
                      DH.Draw_4_Pixels.all (
                         Integer (X) + Buffer.Position.X + Position.X,
                         Integer (Y) + Buffer.Position.Y + Position.Y,
-                        Long_Long_Unsigned (J_FB0) +
-                        Long_Long_Unsigned (J_FB1) * 2 ** 16 +
-                        Long_Long_Unsigned (J_FB2) * 2 ** 32 +
-                        Long_Long_Unsigned (J_FB3) * 2 ** 48
+                        Long_Long_Unsigned (C0)
+                        + Long_Long_Unsigned (C1) * 2 ** 16
+                        + Long_Long_Unsigned (C2) * 2 ** 32
+                        + Long_Long_Unsigned (C3) * 2 ** 48
                      );
                   end if;
                end;
@@ -161,23 +221,24 @@ package body Renderer.Compositor is
          if Draw_2px then
             while I < Lim - 1 loop
                declare
-                  J : constant Unsigned := (Y + Pos_Y) *
-                     Buf_Width + X + Pos_X;
-                  J_Off : constant Unsigned := J + Offset;
-                  J_FB0 : constant Color_Type := WFB (J);
-                  J_FB1 : constant Color_Type := WFB (J + One);
+                  Src : constant Unsigned :=
+                     (Y + Pos_Y) * Buf_Width + (X + Pos_X);
+                  Dst : constant Unsigned :=
+                     (Y + B_Pos_Y) * Scr_Width + (X + B_Pos_X);
+
+                  C0  : constant Color_Type := WFB (Src + Zero);
+                  C1  : constant Color_Type := WFB (Src + One);
                begin
-                  if
-                     J_FB0 /= Backbuffer (J_Off) or
-                     J_FB1 /= Backbuffer (J_Off + One)
+                  if C0 /= Backbuffer (Dst + Zero)
+                     or C1 /= Backbuffer (Dst + One)
                   then
-                     Backbuffer (J_Off) := J_FB0;
-                     Backbuffer (J_Off + One) := J_FB1;
+                     Backbuffer (Dst + Zero) := C0;
+                     Backbuffer (Dst + One) := C1;
 
                      DH.Draw_2_Pixels_Raw.all (
-                        J_Off,
-                        Integer (J_FB0),
-                        Integer (J_FB1)
+                        Dst,
+                        Integer (C0),
+                        Integer (C1)
                      );
                   end if;
 
@@ -195,17 +256,18 @@ package body Renderer.Compositor is
 
          while I < Lim loop
             declare
-               J : constant Unsigned := (Y + Pos_Y) *
-                     Buf_Width + X + Pos_X;
-               FB : constant Color_Type := WFB (J);
+               Src : constant Unsigned :=
+                  (Y + Pos_Y) * Buf_Width + (X + Pos_X);
+               Dst : constant Unsigned :=
+                  (Y + B_Pos_Y) * Scr_Width + (X + B_Pos_X);
+               C   : constant Color_Type := WFB (Src);
             begin
-               --  ensure pixel changed
-               if FB /= Backbuffer (J + Offset) then
-                  Backbuffer (J + Offset) := FB;
+               if C /= Backbuffer (Dst) then
+                  Backbuffer (Dst) := C;
                   Renderer.Draw_Pixel (
                      Integer (X) + Buffer.Position.X + Position.X,
                      Integer (Y) + Buffer.Position.Y + Position.Y,
-                     FB
+                     C
                   );
                end if;
 
@@ -269,6 +331,31 @@ package body Renderer.Compositor is
       ));
       return 0;
    end Find_Uninitialized_Buffer;
+
+   procedure Move_Buffer (
+      To : Point;
+      ID : Unsigned
+   ) is
+      Buffer : constant Window_Buffer := Buffers (ID);
+   begin
+      if not Buffer.Initialized then
+         Throw ((
+            Uninitialized_Error,
+            Make_Line ("Buffer window was uninitialized"),
+            Make_Line ("Renderer.Compositor#Move_Buffer"),
+            0,
+            No_Extra,
+            OS
+         ));
+      end if;
+
+      Buffers (ID).Position := To;
+
+      --  render buffer at new pos
+      Render_Buffer (ID);
+      --  rerender buffers at old pos
+      Render_Buffer_Sections (Buffer.Position, Buffer.Size);
+   end Move_Buffer;
 
    --  operator definitions
    function "*" (LHS : Integer; RHS : Unsigned) return Unsigned is

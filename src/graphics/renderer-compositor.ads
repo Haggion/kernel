@@ -24,12 +24,22 @@ package Renderer.Compositor is
       ID       : Unsigned
    );
 
+   procedure Render_Buffer_Sections (
+      Abs_Position : Point;
+      Size         : Point
+   );
+
    --  returns ID of new buffer
    function Register_New_Buffer (
       Position : Point;
       Size : Point;
       Transparency : Percentage := 0
    ) return Unsigned;
+
+   procedure Move_Buffer (
+      To : Point;
+      ID : Unsigned
+   );
 private
    function Find_Uninitialized_Buffer return Unsigned;
 

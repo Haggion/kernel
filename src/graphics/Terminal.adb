@@ -35,7 +35,7 @@ package body Terminal is
 
    Curr_Font_Color : Color_Type;
    Curr_Background_Color : Color_Type;
-   --  Curr_Cursor_Color : Color_Type;
+   Curr_Cursor_Color : Color_Type;
 
    ESC_Code_N : Integer := 0;
    ESC_Code_M : Integer := 0;
@@ -46,6 +46,10 @@ package body Terminal is
    Collecting_N : Boolean := True;
 
    Window_ID : Unsigned;
+   Cursor_ID : Unsigned;
+
+   Cursor_Width  : Integer;
+   Cursor_Height : Integer;
 
    procedure Initialize is
    begin
@@ -59,13 +63,28 @@ package body Terminal is
       Row_Per_Col := Terminal_Height /
          ((Font_Size + Vertical_Spacing) * Font_Scale) - 1;
 
+      Cursor_Width  := (Font_Size * Font_Scale);
+      Cursor_Height := (Font_Size * Font_Scale);
+
       Curr_Font_Color := Font_Color;
       Curr_Background_Color := Background_Color;
-      --  Curr_Cursor_Color := Gray;
+      Curr_Cursor_Color := Gray;
 
       Window_ID := Renderer.Compositor.Register_New_Buffer (
          (0, 0),
          (Terminal_Width, Terminal_Height)
+      );
+
+      Cursor_ID := Renderer.Compositor.Register_New_Buffer (
+         (0, 0),
+         (Cursor_Width, Cursor_Height)
+      );
+
+      Draw_Rectangle (
+         (0, 0),
+         (Cursor_Width - 1, Cursor_Height - 1),
+         Curr_Cursor_Color,
+         Cursor_ID
       );
    end Initialize;
 
@@ -167,11 +186,16 @@ package body Terminal is
       elsif Ch = Character'Val (13) then
          Col := 0;
          OI := 1;
+
+         Renderer.Compositor.Move_Buffer (
+            (Col_Start (Col), Row_Start (Row)),
+            Cursor_ID
+         );
       elsif Ch = Character'Val (0) then
          null;
       elsif Ch = Character'Val (8) then
          if Col > 0 then
-            Col := Col - 1;
+            Move_Cursor (Col - 1, Row);
          end if;
 
          if Self_Contained then
@@ -212,6 +236,8 @@ package body Terminal is
                   Col := 0;
                   Increment_Row;
                end if;
+
+               Move_Cursor (Col, Row);
 
                Rerender (
                   (X, Y),
@@ -267,6 +293,8 @@ package body Terminal is
 
          Col := Initial_Col;
          Row := Initial_Row;
+
+         Move_Cursor (Col, Row);
 
          Rerender;
       end if;
@@ -399,6 +427,8 @@ package body Terminal is
       Row := Row - ESC_Code_N;
 
       Check_Cursor;
+
+      Move_Cursor (Col, Row);
    end ESC_Cursor_Up;
 
    procedure ESC_Cursor_Down is
@@ -410,6 +440,8 @@ package body Terminal is
       Row := Row + ESC_Code_N;
 
       Check_Cursor;
+
+      Move_Cursor (Col, Row);
    end ESC_Cursor_Down;
 
    procedure ESC_Cursor_Forward is
@@ -421,6 +453,8 @@ package body Terminal is
       Col := Col + ESC_Code_N;
 
       Check_Cursor;
+
+      Move_Cursor (Col, Row);
    end ESC_Cursor_Forward;
 
    procedure ESC_Cursor_Back is
@@ -432,6 +466,8 @@ package body Terminal is
       Col := Col - ESC_Code_N;
 
       Check_Cursor;
+
+      Move_Cursor (Col, Row);
    end ESC_Cursor_Back;
 
    procedure ESC_Cursor_Next_Line is
@@ -616,6 +652,17 @@ package body Terminal is
    begin
       return Col_Start (N) + Font_Size * Font_Scale;
    end Col_End;
+
+   procedure Move_Cursor (New_Col : Integer; New_Row : Integer) is
+   begin
+      Col := New_Col;
+      Row := New_Row;
+
+      Renderer.Compositor.Move_Buffer (
+         (Col_Start (Col), Row_Start (Row)),
+         Cursor_ID
+      );
+   end Move_Cursor;
 
    procedure Rerender is
    begin
