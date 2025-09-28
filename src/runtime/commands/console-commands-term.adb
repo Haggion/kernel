@@ -8,8 +8,24 @@ package body Console.Commands.Term is
    function Color (Args : Arguments) return Return_Data is
    begin
       if Args (0).Value /= Str then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected first argument to be a string"),
+            Make_Line ("Console.Commands.Term#Color"),
+            0,
+            No_Extra,
+            User
+         ));
          return Ret_Fail;
       elsif Args (1).Value = Void then
+         Throw ((
+            Incorrect_Type,
+            Make_Line ("Expected second argument describing color"),
+            Make_Line ("Console.Commands.Term#Color"),
+            0,
+            No_Extra,
+            User
+         ));
          return Ret_Fail;
       end if;
 
