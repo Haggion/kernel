@@ -34,6 +34,8 @@ package IO is
       Ch : Character;
       S : Stream := Default_Stream
    );
+   pragma Export (Ada, Put_Char, "_put_char");
+
    procedure Put_String (
       Str : String;
       End_With : Character := Character'Val (10);
@@ -57,6 +59,7 @@ package IO is
    procedure New_Line (S : Stream := Default_Stream);
 
    function Get_Char (S : Stream := Default_Stream) return Character;
+   pragma Export (Ada, Get_Char, "_get_char");
    function Get_Line (
       Show_Typing : Boolean;
       S : Stream := Default_Stream

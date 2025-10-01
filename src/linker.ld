@@ -4,10 +4,12 @@ PHDRS
 {
 	text PT_LOAD FLAGS(5);
 	data PT_LOAD FLAGS(7);
+	dispatch PT_LOAD FLAGS(5);
 }
 
 MEMORY {
    ram (rwx) : ORIGIN = 0x80000000, LENGTH = 64M
+	trampmem  (rx)  : ORIGIN = 0x85000000, LENGTH = 64K
 }
 
 SECTIONS
@@ -47,6 +49,10 @@ SECTIONS
 	PROVIDE(_stack_limit = _stack_bottom);
    PROVIDE(_stack_base  = _stack_top);
 	
+	.dispatch 0x85000000 : {
+		KEEP(*(.dispatch))
+	} > trampmem :dispatch
+
 	/DISCARD/ : {
 		*(.note .note.*)
 		*(.eh_frame*)
