@@ -1,32 +1,54 @@
-with File_System.RAM_Disk; use File_System.RAM_Disk;
 with File_System.Block; use File_System.Block;
 with Error_Handler;
+with Driver_Handler;
+with System.Unsigned_Types; use System.Unsigned_Types;
 
 package body File_System is
-   function Get_Block (Address : Storage_Address) return Block_Bytes is
+   function Get_RAM_Block (Address : Storage_Address) return Block_Bytes is
    begin
       return Storage (Address);
-   end Get_Block;
+   end Get_RAM_Block;
 
-   procedure Write_Block (Address : Storage_Address; Data : Block_Bytes) is
+   procedure Write_RAM_Block (Address : Storage_Address; Data : Block_Bytes) is
    begin
       Storage (Address) := Data;
+   end Write_RAM_Block;
 
-      Mark_Block_Used (Address);
+   function Get_Block (Address : Storage_Address) return Block_Bytes is
+   begin
+      return Driver_Handler.Read_Block (Unsigned (Address));
+   end Get_Block;
+
+   procedure Write_Block (
+      Address : Storage_Address;
+      Data : Block_Bytes;
+      Mark_Block : Boolean := True
+   ) is
+   begin
+      Driver_Handler.Write_Block (
+         Unsigned (Address),
+         Data
+      );
+
+      if Mark_Block then
+         Mark_Block_Used (Address);
+      end if;
    end Write_Block;
 
    procedure Mark_Block_Used (Address : Storage_Address) is
       Usage_Byte : Byte;
-      Usage : Block_Bytes renames Storage (UB_Address);
+      Usage : Block_Bytes := Get_Block (UB_Address);
    begin
       Usage_Byte := Usage (Natural (Address / 8));
       Usage_Byte := Set_Bit (Usage_Byte, Natural (7 - Address mod 8), True);
 
       Usage (Natural (Address / 8)) := Usage_Byte;
+
+      Write_Block (UB_Address, Usage, False);
    end Mark_Block_Used;
 
    function Get_Free_Address return Storage_Address is
-      Usage : Block_Bytes renames Storage (UB_Address);
+      Usage : constant Block_Bytes := Get_Block (UB_Address);
    begin
       for Index in Usage'Range loop
          --  if a byte holds a number other than 255,
@@ -47,12 +69,12 @@ package body File_System is
 
    function Root return Block_Bytes is
    begin
-      return Storage (Root_Address);
+      return Get_Block (Root_Address);
    end Root;
 
    function Root_Address return Storage_Address is
       FS_Metadata : constant File_System_Metadata :=
-         Parse_File_System_Metadata (Storage (1));
+         Parse_File_System_Metadata (Get_Block (1));
    begin
       return Four_Bytes (2 + FS_Metadata.Num_Usage_Blocks);
    end Root_Address;

@@ -35,3 +35,9 @@ default_graphics:
 default_cache_controller:
    la a0, STARFIVE
    ret
+
+.global default_storage
+.type default_storage, @function
+default_storage:
+   li a0, NONE
+   ret

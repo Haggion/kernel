@@ -14,8 +14,19 @@ package File_System is
       with Component_Size => 8;
    type Device_Blocks is array (0 .. Num_Blocks - 1) of Block_Bytes;
 
+   Storage : Device_Blocks;
+
    function Get_Block (Address : Storage_Address) return Block_Bytes;
-   procedure Write_Block (Address : Storage_Address; Data : Block_Bytes);
+   procedure Write_Block (
+      Address : Storage_Address;
+      Data : Block_Bytes;
+      Mark_Block : Boolean := True
+   );
+
+   --  all this ram storage stuff going on in here needs to be moved
+   --  ... eventually
+   function Get_RAM_Block (Address : Storage_Address) return Block_Bytes;
+   procedure Write_RAM_Block (Address : Storage_Address; Data : Block_Bytes);
 
    procedure Mark_Block_Used (Address : Storage_Address);
    function Get_Free_Address return Storage_Address;

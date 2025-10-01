@@ -1,10 +1,11 @@
 with File_System.Formatter;
 with IO; use IO;
+with System.Unsigned_Types; use System.Unsigned_Types;
 
 package body File_System.RAM_Disk is
    procedure Initialize is
    begin
-      File_System.Formatter.Format (Storage'Access);
+      File_System.Formatter.Format;
    end Initialize;
 
    procedure Print_Disk is
@@ -12,7 +13,7 @@ package body File_System.RAM_Disk is
       for Block of Storage loop
          Put_Char ('[');
          for Data of Block loop
-            Put_Int (Long_Integer (Data));
+            Put_Hex (Long_Long_Unsigned (Data));
             Put_Char (' ');
          end loop;
          Put_Char (']');

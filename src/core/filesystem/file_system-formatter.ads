@@ -1,3 +1,3 @@
 package File_System.Formatter is
-   procedure Format (Storage : access Device_Blocks);
+   procedure Format;
 end File_System.Formatter;

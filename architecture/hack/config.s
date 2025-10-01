@@ -5,39 +5,40 @@
 .equ STARFIVE, 2
 .equ OPENSBI,  3
 .equ UBOOT,    4
+.equ HOSHEN,   5
 
 .global default_uart
 .type default_uart, @function
 default_uart:
-   li a0, QEMU
+   la a0, STARFIVE
    ret
 
 .global default_rtc
 .type default_rtc, @function
 default_rtc:
-   li a0, QEMU
+   la a0, STARFIVE
    ret
 
 .global default_power
 .type default_power, @function
 default_power:
-   li a0, QEMU
+   la a0, OPENSBI
    ret
 
 .global default_graphics
 .type default_graphics, @function
 default_graphics:
-   li a0, QEMU 
+   la a0, UBOOT
    ret
 
 .global default_cache_controller
 .type default_cache_controller, @function
 default_cache_controller:
-   li a0, NONE
+   la a0, STARFIVE
    ret
 
 .global default_storage
 .type default_storage, @function
 default_storage:
-   li a0, NONE
+   li a0, HOSHEN
    ret

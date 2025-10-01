@@ -1,12 +1,9 @@
 with Console;
-with File_System.RAM_Disk;
 with Terminal;
 with IO; use IO;
 
 procedure Kernel is
 begin
-   File_System.RAM_Disk.Initialize;
-
    Terminal.Clear;
 
    Put_String (

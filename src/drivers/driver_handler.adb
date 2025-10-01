@@ -8,6 +8,8 @@ with IO;
 with Terminal;
 with Renderer;
 with RamFB;
+with Hoshen_Storage;
+with File_System.RAM_Disk;
 
 package body Driver_Handler is
    procedure Init is
@@ -21,12 +23,15 @@ package body Driver_Handler is
       pragma Import (C, Graphics_Default, "default_graphics");
       function CC_Default return Integer;
       pragma Import (C, CC_Default, "default_cache_controller");
+      function Storage_Default return Integer;
+      pragma Import (C, Storage_Default, "default_storage");
 
       UART_Selection : constant Integer := UART_Default;
       Power_Selection : constant Integer := Power_Default;
       RTC_Selection : constant Integer := RTC_Default;
       Graphics_Selection : constant Integer := Graphics_Default;
       CC_Selection : constant Integer := CC_Default;
+      Storage_Selection : constant Integer := Storage_Default;
    begin
       case UART_Selection is
          when 1 =>
@@ -72,6 +77,19 @@ package body Driver_Handler is
          when others =>
             CC_Implementation := None;
       end case;
+
+      case Storage_Selection is
+         when 5 =>
+            Storage_Implementation := Hoshen;
+         when others =>
+            Storage_Implementation := None;
+      end case;
+
+      if Storage_Implementation = None then
+         File_System.RAM_Disk.Initialize;
+      elsif Storage_Implementation = Hoshen then
+         Hoshen_Storage.Wait_Until_Active;
+      end if;
 
       Init_Graphics;
 
@@ -354,4 +372,32 @@ package body Driver_Handler is
             null;
       end case;
    end Flush_Address;
+
+   function Read_Block (Address : Unsigned) return File_System.Block_Bytes is
+   begin
+      case Storage_Implementation is
+         when Hoshen =>
+            return Hoshen_Storage.Request_Block (Address);
+         when None =>
+            return File_System.Get_RAM_Block (
+               File_System.Storage_Address (Address)
+            );
+      end case;
+   end Read_Block;
+
+   procedure Write_Block (
+      Address : Unsigned;
+      Data : File_System.Block_Bytes
+   ) is
+   begin
+      case Storage_Implementation is
+         when Hoshen =>
+            Hoshen_Storage.Send_Block (Address, Data);
+         when None =>
+            File_System.Write_RAM_Block (
+               File_System.Storage_Address (Address),
+               Data
+            );
+      end case;
+   end Write_Block;
 end Driver_Handler;

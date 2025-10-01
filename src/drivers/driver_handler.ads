@@ -4,6 +4,7 @@
 
 with System.Unsigned_Types; use System.Unsigned_Types;
 with Callables; use Callables;
+with File_System;
 
 package Driver_Handler is
    type UART_Implementations is (
@@ -21,12 +22,16 @@ package Driver_Handler is
    type CC_Implementations is (
       StarFive, None
    );
+   type Storage_Implementations is (
+      Hoshen, None
+   );
 
    UART_Implementation : UART_Implementations;
    Power_Implementation : Power_Implementations;
    RTC_Implementation : RTC_Implementations;
    Graphics_Implementation : Graphics_Implementations;
    CC_Implementation : CC_Implementations;
+   Storage_Implementation : Storage_Implementations;
 
    procedure Init;
    pragma Export (Ada, Init, "_initialize_drivers");
@@ -98,6 +103,10 @@ package Driver_Handler is
    --  cache control drivers
    procedure Flush_Address (Address : Long_Long_Unsigned);
    pragma Export (Ada, Flush_Address, "flush_address");
+
+   --  storage drivers
+   function Read_Block (Address : Unsigned) return File_System.Block_Bytes;
+   procedure Write_Block (Address : Unsigned; Data : File_System.Block_Bytes);
 private
    --  UART drivers
    procedure QEMU_UART_Put_Char (Ch : Integer);

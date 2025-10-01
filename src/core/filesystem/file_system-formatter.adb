@@ -1,9 +1,10 @@
 with File_System.Block; use File_System.Block;
 
 package body File_System.Formatter is
-   procedure Format (Storage : access Device_Blocks) is
+   procedure Format is
       FS_Metadata : File_System_Metadata;
       F_Metadata : File_Metadata;
+
       Usage : constant Usage_Block := (True, True, True, others => False);
    begin
       --  same as number of blocks
