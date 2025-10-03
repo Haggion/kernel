@@ -7,7 +7,7 @@ with Driver_Handler;
 package body Hoshen_Storage is
    function Request_Block (Address : Unsigned) return Block_Bytes is
       Block : Block_Bytes;
-      Addr_Bytes : constant Byte_Array_Ptr := Split_Into_Bytes (Address);
+      Addr_Bytes : Byte_Array_Ptr := Split_Into_Bytes (Address);
    begin
       --  say we're issuing a request block command
       Driver_Handler.UART_Put_Char (16#EE#);
@@ -20,6 +20,8 @@ package body Hoshen_Storage is
          Driver_Handler.UART_Put_Char (Integer (Addr_Bytes (I)));
       end loop;
 
+      Free (Addr_Bytes);
+
       --  read block
       for I in Block'Range loop
          Block (I) := Byte (Character'Pos (Driver_Handler.UART_Get_Char));
@@ -29,7 +31,7 @@ package body Hoshen_Storage is
    end Request_Block;
 
    procedure Send_Block (Address : Unsigned; Data : Block_Bytes) is
-      Addr_Bytes : constant Byte_Array_Ptr := Split_Into_Bytes (Address);
+      Addr_Bytes : Byte_Array_Ptr := Split_Into_Bytes (Address);
    begin
       --  say we're issuing a send block command
       Driver_Handler.UART_Put_Char (16#EE#);
@@ -41,6 +43,8 @@ package body Hoshen_Storage is
       for I in Addr_Bytes'Range loop
          Driver_Handler.UART_Put_Char (Integer (Addr_Bytes (I)));
       end loop;
+
+      Free (Addr_Bytes);
 
       --  send block
       for I in Data'Range loop

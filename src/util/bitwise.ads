@@ -1,3 +1,5 @@
+with Ada.Unchecked_Deallocation;
+
 package Bitwise is
    type Four_Bytes is range 0 .. 2**32 - 1;
    type Byte is range 0 .. 2 ** 8 - 1
@@ -28,4 +30,7 @@ package Bitwise is
    function "and"(Left : Four_Bytes; Right : Integer) return Byte;
 
    function "or"(Left : Byte; Right : Integer) return Byte;
+
+   procedure Free is new
+      Ada.Unchecked_Deallocation (Byte_Array, Byte_Array_Ptr);
 end Bitwise;
