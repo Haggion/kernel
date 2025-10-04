@@ -7,6 +7,10 @@ package body Lines.List is
       Temp : Char_List_Node_Ptr := List.First;
       Index : Natural := Str_Builder'First;
    begin
+      if Temp = null then
+         return Str_Builder;
+      end if;
+
       while Temp.Value /= Null_Ch loop
          Str_Builder (Index) := Temp.Value;
 
