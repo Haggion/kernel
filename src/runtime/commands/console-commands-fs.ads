@@ -20,4 +20,6 @@ package Console.Commands.FS is
    function Run (Args : Arguments) return Return_Data;
    function Run_Assembly (Code : File_Bytes_Pointer) return Return_Data;
    function Run_Shell (Code : File_Bytes_Pointer) return Return_Data;
+
+   function Format (Args : Arguments) return Return_Data;
 end Console.Commands.FS;

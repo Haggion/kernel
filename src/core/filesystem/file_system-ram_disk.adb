@@ -5,7 +5,7 @@ with System.Unsigned_Types; use System.Unsigned_Types;
 package body File_System.RAM_Disk is
    procedure Initialize is
    begin
-      File_System.Formatter.Format;
+      File_System.Formatter.Format (Num_Blocks);
    end Initialize;
 
    procedure Print_Disk is

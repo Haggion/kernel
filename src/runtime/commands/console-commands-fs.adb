@@ -6,6 +6,7 @@ with System; use System;
 with Ada.Unchecked_Conversion;
 with System.Machine_Code;
 with Error_Handler; use Error_Handler;
+with File_System.Formatter;
 
 package body Console.Commands.FS is
    function List_Links (Args : Arguments) return Return_Data is
@@ -394,4 +395,12 @@ package body Console.Commands.FS is
 
       return Result;
    end Info;
+
+   function Format (Args : Arguments) return Return_Data is
+   begin
+      File_System.Formatter.Format (
+         Four_Bytes (Args (0).Int_Val)
+      );
+      return Ret_Void;
+   end Format;
 end Console.Commands.FS;

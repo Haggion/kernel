@@ -84,6 +84,8 @@ package body Console.Commands is
          return Put (Args);
       elsif Command = "baseconv" then
          return Base_Convert (Args);
+      elsif Command = "format" then
+         return Format (Args);
       elsif Command = "wait" then
          declare
             procedure Delay_Milliseconds (Time : Long_Integer);
