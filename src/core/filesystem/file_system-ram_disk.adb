@@ -13,7 +13,7 @@ package body File_System.RAM_Disk is
       for Block of Storage loop
          Put_Char ('[');
          for Data of Block loop
-            Put_Hex (Long_Long_Unsigned (Data));
+            Put_Hex (Long_Long_Unsigned (Data), False);
             Put_Char (' ');
          end loop;
          Put_Char (']');

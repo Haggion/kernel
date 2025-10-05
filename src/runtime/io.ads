@@ -68,9 +68,17 @@ package IO is
       Show_Typing : Boolean;
       S : Stream := Default_Stream
    ) return Ch_List_Ptr;
+   function Get_String (
+      Show_Typing : Boolean := False;
+      S : Stream := Default_Stream
+   ) return Str_Ptr;
+   pragma Export (Ada, Get_String, "_get_string");
 
-   procedure Put_Hex (Number : Long_Long_Unsigned);
-   pragma Export (C, Put_Hex, "_put_hex");
+   procedure Put_Hex (
+      Number : Long_Long_Unsigned;
+      With_Prefix : Boolean := True
+   );
+   pragma Export (Ada, Put_Hex, "_put_hex");
 private
    function UART_Get_Char return Character;
    pragma Import (C, UART_Get_Char, "uart_get_char");

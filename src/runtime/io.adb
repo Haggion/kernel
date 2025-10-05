@@ -224,12 +224,29 @@ package body IO is
       Put_Int (Adr_To_Int (Address), S);
    end Put_Address;
 
-   procedure Put_Hex (Number : Long_Long_Unsigned) is
+   procedure Put_Hex (
+      Number : Long_Long_Unsigned;
+      With_Prefix : Boolean := True
+   ) is
    begin
-      Put_String ("0x", Null_Ch);
+      if With_Prefix then
+         Put_String ("0x", Null_Ch);
+      end if;
+
       Put_Line (
          Lines.Converter.Hex_To_Line (Number),
          End_With => Null_Ch
       );
    end Put_Hex;
+
+   function Get_String (
+      Show_Typing : Boolean := False;
+      S : Stream := Default_Stream
+   ) return Str_Ptr is
+   begin
+      return Make_Str (Get_List (
+         Show_Typing,
+         S
+      ));
+   end Get_String;
 end IO;
