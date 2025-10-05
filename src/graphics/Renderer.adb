@@ -1,6 +1,7 @@
 with Driver_Handler;
 with Renderer.Colors; use Renderer.Colors;
 with Renderer.Compositor;
+with System.Machine_Code;
 
 package body Renderer is
    procedure Draw_Rectangle (
@@ -124,15 +125,18 @@ package body Renderer is
 
       Shape : constant Rect := Points_To_Rect (P1, P2);
 
-      Width : constant Unsigned := Unsigned (
+      --  div by 64 b/c 64 bytes per addr flushed
+      Width : constant Unsigned := (Unsigned (
          (Shape.X_Max - Shape.X_Min)
-      ) * Bytes_Per_Pixel / 64 + 1; --  div by 64 b/c 64 bytes per addr flushed
+      ) * Bytes_Per_Pixel + 63) / 64;
    begin
       if not (Force or Screen_Data.Flush_Needed) then
          return;
       end if;
 
-      for X in 0 .. Width loop
+      System.Machine_Code.Asm ("fence iorw, iorw", Volatile => True);
+
+      for X in 0 .. Width - 1 loop
          for Y in Shape.Y_Min .. Shape.Y_Max loop
             Driver_Handler.Flush_Address (
                Screen_Data.Framebuffer_Start +
@@ -143,6 +147,8 @@ package body Renderer is
             );
          end loop;
       end loop;
+
+      System.Machine_Code.Asm ("fence iorw, iorw", Volatile => True);
    end Flush_Area;
 
    function Points_To_Rect (P1 : Point; P2 : Point) return Rect is

@@ -9,6 +9,6 @@ starfive_flush_address:
    # make sure address is aligned
    andi   t0, a0, -64
    li     t1, CC_BASE + CC_FLUSH
+   
    sd     t0, 0(t1)
-   fence  rw, rw
    ret

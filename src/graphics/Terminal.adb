@@ -53,10 +53,15 @@ package body Terminal is
 
    procedure Initialize is
    begin
+      --  by default, the terminal just takes up the whole screen
       Terminal_Width := Driver_Handler.Screen_Width;
       Terminal_Height := Driver_Handler.Screen_Height;
 
       Font_Scale := Terminal_Width / 500;
+
+      if Font_Scale < 1 then
+         Font_Scale := 1;
+      end if;
 
       Col_Per_Row := Terminal_Width /
          ((Font_Size + Horizontal_Spacing) * Font_Scale) - 1;
@@ -312,8 +317,8 @@ package body Terminal is
       Renderer.Draw_Rectangle (
          (0, 0),
          (
-            Driver_Handler.Screen_Width - 1,
-            Driver_Handler.Screen_Height - 1
+            Terminal_Width - 1,
+            Terminal_Height - 1
          ),
          Curr_Background_Color,
          Window_ID
