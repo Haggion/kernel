@@ -24,3 +24,5 @@ spl_tool
 
 *.dtb
 *.dts
+
+*.0
