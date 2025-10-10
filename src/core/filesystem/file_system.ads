@@ -3,7 +3,7 @@ with Bitwise; use Bitwise;
 package File_System is
    --  in bytes
    Block_Size : constant Natural := 512;
-   Num_Blocks : constant Four_Bytes := 16;
+   Num_Blocks : constant Four_Bytes := 32;
 
    subtype Storage_Address is Four_Bytes;
 

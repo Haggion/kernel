@@ -253,26 +253,35 @@ package body File_System.Block.Util is
       while Size_Remaining >= Four_Bytes (Block_Data_Size) loop
          Size_Remaining := Size_Remaining - Four_Bytes (Block_Data_Size);
 
-         Current_Block := Next_Data_Block (Data_Buffer);
+         declare
+            Next_Block : constant Storage_Address :=
+               Next_Data_Block (Data_Buffer);
+         begin
+            --  might need to make a new block to start writing in
+            if Next_Block = 0 then
+               --  put address of new block in old block
+               declare
+                  New_Block : constant Storage_Address :=
+                     File_System.Get_Free_Address;
+                  Bytes : constant Four_Byte_Array :=
+                     Four_Bytes_To_Bytes (Current_Block);
+               begin
+                  File_System.Mark_Block_Used (Current_Block);
 
-         --  might need to make a new block to start writing in
-         if Current_Block = 0 then
-            Current_Block := File_System.Get_Free_Address;
-            File_System.Mark_Block_Used (Current_Block);
+                  Data_Buffer (Block_Size - 4) := Bytes (0);
+                  Data_Buffer (Block_Size - 3) := Bytes (1);
+                  Data_Buffer (Block_Size - 2) := Bytes (2);
+                  Data_Buffer (Block_Size - 1) := Bytes (3);
 
-            --  put address of new block in old block
-            declare
-               Bytes : constant Four_Byte_Array :=
-                  Four_Bytes_To_Bytes (Current_Block);
-            begin
-               Data_Buffer (Block_Size - 4) := Bytes (0);
-               Data_Buffer (Block_Size - 3) := Bytes (1);
-               Data_Buffer (Block_Size - 2) := Bytes (2);
-               Data_Buffer (Block_Size - 1) := Bytes (3);
-            end;
-         end if;
-
-         Data_Buffer := File_System.Get_Block (Current_Block);
+                  File_System.Write_Block (Current_Block, Data_Buffer);
+                  Current_Block := New_Block;
+                  Data_Buffer := (others => 0);
+               end;
+            else
+               Data_Buffer := File_System.Get_Block (Current_Block);
+               Current_Block := Next_Block;
+            end if;
+         end;
       end loop;
 
       --  start writing text
