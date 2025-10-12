@@ -11,7 +11,13 @@ package IO is
    ENDL : constant String := LF & CR;
 
    type Channel is (
-      UART, Term, Debug, Default
+      Default, UART, Term, Debug
+   );
+   for Channel use (
+      Default => 0,
+      UART => 1,
+      Term => 2,
+      Debug => 3
    );
 
    type Stream is record
@@ -34,7 +40,6 @@ package IO is
       Ch : Character;
       S : Stream := Default_Stream
    );
-   pragma Export (Ada, Put_Char, "_put_char");
 
    procedure Put_String (
       Str : String;
@@ -59,7 +64,6 @@ package IO is
    procedure New_Line (S : Stream := Default_Stream);
 
    function Get_Char (S : Stream := Default_Stream) return Character;
-   pragma Export (Ada, Get_Char, "_get_char");
    function Get_Line (
       Show_Typing : Boolean;
       S : Stream := Default_Stream
@@ -69,8 +73,7 @@ package IO is
       S : Stream := Default_Stream
    ) return Ch_List_Ptr;
    function Get_String (
-      Show_Typing : Boolean := False;
-      S : Stream := Default_Stream
+      Show_Typing : Boolean := False
    ) return Str_Ptr;
    pragma Export (Ada, Get_String, "_get_string");
 
@@ -80,6 +83,11 @@ package IO is
    );
    pragma Export (Ada, Put_Hex, "_put_hex");
 private
+   function Get_Char_NS return Character;
+   pragma Export (Ada, Get_Char_NS, "_get_char");
+   procedure Put_Char_NS (Ch : Integer);
+   pragma Export (Ada, Put_Char_NS, "_put_char");
+
    function UART_Get_Char return Character;
    pragma Import (C, UART_Get_Char, "uart_get_char");
 

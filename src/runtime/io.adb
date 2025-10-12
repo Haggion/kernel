@@ -240,13 +240,21 @@ package body IO is
    end Put_Hex;
 
    function Get_String (
-      Show_Typing : Boolean := False;
-      S : Stream := Default_Stream
+      Show_Typing : Boolean := False
    ) return Str_Ptr is
    begin
       return Make_Str (Get_List (
-         Show_Typing,
-         S
+         Show_Typing
       ));
    end Get_String;
+
+   function Get_Char_NS return Character is
+   begin
+      return Get_Char;
+   end Get_Char_NS;
+
+   procedure Put_Char_NS (Ch : Integer) is
+   begin
+      Put_Char (Ch);
+   end Put_Char_NS;
 end IO;

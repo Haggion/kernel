@@ -205,16 +205,32 @@ package body Console.Commands.FS is
 
    function Append_Raw (Args : Arguments) return Return_Data is
       Append_Result : Return_Data;
-      Temp : Str_Ptr := new Lines.Str (1 .. 1);
+      Temp : Str_Ptr;
    begin
       for Arg of Args loop
          exit when Arg.Value /= Int;
 
-         Temp (1) := Character'Val (Arg.Int_Val);
+         --  if Arg.Int_Val < 255 then
+         --     Temp := new Lines.Str (1 .. 1);
+         --     Temp (1) := Character'Val (Arg.Int_Val);
+         --  else
+         declare
+            Bytes : constant Four_Byte_Array := Four_Bytes_To_Bytes (
+               Four_Bytes (Arg.Int_Val)
+            );
+         begin
+            Temp := new Lines.Str (1 .. 4);
+
+            Temp (4) := Character'Val (Bytes (0));
+            Temp (3) := Character'Val (Bytes (1));
+            Temp (2) := Character'Val (Bytes (2));
+            Temp (1) := Character'Val (Bytes (3));
+         end;
+         --  end if;
 
          Append_Result := Append_To_File (
             Temp,
-            1
+            Temp'Length
          );
 
          if not Append_Result.Succeeded then
