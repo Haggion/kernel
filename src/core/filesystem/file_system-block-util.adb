@@ -264,9 +264,9 @@ package body File_System.Block.Util is
                   New_Block : constant Storage_Address :=
                      File_System.Get_Free_Address;
                   Bytes : constant Four_Byte_Array :=
-                     Four_Bytes_To_Bytes (Current_Block);
+                     Four_Bytes_To_Bytes (New_Block);
                begin
-                  File_System.Mark_Block_Used (Current_Block);
+                  File_System.Mark_Block_Used (New_Block);
 
                   Data_Buffer (Block_Size - 4) := Bytes (0);
                   Data_Buffer (Block_Size - 3) := Bytes (1);
@@ -278,7 +278,7 @@ package body File_System.Block.Util is
                   Data_Buffer := (others => 0);
                end;
             else
-               Data_Buffer := File_System.Get_Block (Current_Block);
+               Data_Buffer := File_System.Get_Block (Next_Block);
                Current_Block := Next_Block;
             end if;
          end;
