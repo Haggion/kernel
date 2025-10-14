@@ -19,11 +19,11 @@ Address    Method
 0x8500006C _rerender_buffer
 0x85000078 _rerender_buffer_section
 0x85000084 _delay
-0x85000090 _read_file
-0x8500009C _write_file
+0x85000090 _allocate_memory
+0x8500009C _free_memory
 0x850000A8 _create_file
-0x850000B4 _allocate_memory
-0x850000C0 _free_memory
+0x850000B4 _read_file
+0x850000C0 _write_file
 0x850000CC _memcpy
 0x850000D8
 0x850000E4
@@ -51,3 +51,5 @@ make_jump _move_buffer
 make_jump _render_buffer
 make_jump _render_buffer_section
 make_jump delay_us
+make_jump malloc
+make_jump free
