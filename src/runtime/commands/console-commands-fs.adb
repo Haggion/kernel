@@ -233,6 +233,8 @@ package body Console.Commands.FS is
             Temp'Length
          );
 
+         Free (Temp);
+
          if not Append_Result.Succeeded then
             return Ret_Fail;
          end if;

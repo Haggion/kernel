@@ -223,32 +223,40 @@ package body Lines.Converter is
    end Line_To_Unknown_Base;
 
    function Str_To_Unknown_Base (Text : Str_Ptr) return Long_Integer is
+      Substr : Str_Ptr;
+      Result : Long_Integer;
    begin
       --  if a number begins with a 0 (and isn't only a 0,)
       --  then that means it is in a different base than base-10
       if Text'Length > 2 and Text (1) = '0' then
          case Text (2) is
             when 'x' | 'X' =>
-               return Long_Integer (
-                  Str_To_Unsigned (
-                     Substring (Text, 3),
-                     16
-                  )
-               );
+               Substr := Substring (Text, 3);
+               Result := Long_Integer (Str_To_Unsigned (
+                  Substr,
+                  16
+               ));
+
+               Free (Substr);
+               return Result;
             when 'b' | 'B' =>
-               return Long_Integer (
-                  Str_To_Unsigned (
-                     Substring (Text, 3),
-                     2
-                  )
-               );
+               Substr := Substring (Text, 3);
+               Result := Long_Integer (Str_To_Unsigned (
+                  Substr,
+                  2
+               ));
+
+               Free (Substr);
+               return Result;
             when others =>
-               return Long_Integer (
-                  Str_To_Unsigned (
-                     Substring (Text, 2),
-                     8
-                  )
-               );
+               Substr := Substring (Text, 3);
+               Result := Long_Integer (Str_To_Unsigned (
+                  Substr,
+                  8
+               ));
+
+               Free (Substr);
+               return Result;
          end case;
       else
          return Long_Integer (Str_To_Unsigned (Text, 10));
