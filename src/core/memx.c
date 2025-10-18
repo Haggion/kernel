@@ -28,7 +28,7 @@ const uintptr_t heap_start = (uintptr_t) &_heap_start;
 #define false 0
 #define null 0
 
-#define DEBUGGING false
+#define DEBUGGING true
 
 size_t align16(size_t x) {
     return ((x + 15) & ~((size_t) 15));

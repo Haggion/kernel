@@ -4,9 +4,11 @@ with File_System;
 with Bitwise; use Bitwise;
 with System; use System;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 with System.Machine_Code;
 with Error_Handler; use Error_Handler;
 with File_System.Formatter;
+with Interfaces.C; use Interfaces.C;
 
 package body Console.Commands.FS is
    function List_Links (Args : Arguments) return Return_Data is
@@ -295,7 +297,7 @@ package body Console.Commands.FS is
       if Args (0).Str_Val = "shell" then
          Result := Run_Shell (Code);
       elsif Args (0).Str_Val = "asm" then
-         Result := Run_Assembly (Code);
+         Result := Run_Assembly (Code, Args);
       else
          Put_String ("Unknown execution method");
       end if;
@@ -331,22 +333,93 @@ package body Console.Commands.FS is
       return Ret_Void;
    end Run_Shell;
 
-   function Run_Assembly (Code : File_Bytes_Pointer) return Return_Data is
-      type Proc_Type is access procedure;
+   function Run_Assembly (
+      Code : File_Bytes_Pointer;
+      Args : Arguments
+   ) return Return_Data is
+      type C_String  is new char_array;
+      type C_String_Access is access all C_String;
+
+      type Argv_Array is array (Natural range <>) of System.Address;
+
+      type Proc_Type is access procedure (
+         Argc : Integer;
+         Argv : Address
+      );
       pragma Convention (C, Proc_Type);
+
+      Argc : Integer := 1;
+      Argv : Argv_Array (0 .. 16);
 
       function To_Proc_Type is
          new Ada.Unchecked_Conversion (Address, Proc_Type);
+      function To_C_String_Access is
+         new Ada.Unchecked_Conversion (Address, C_String_Access);
+      procedure Free is new
+         Ada.Unchecked_Deallocation (C_String, C_String_Access);
 
       P : constant Proc_Type := To_Proc_Type (Code.all'Address);
    begin
+      --  set first argument to file name
+      declare
+         S : constant C_String_Access :=
+            new C_String'(0 .. 255 => Interfaces.C.char'Val (0));
+      begin
+         for I in Current_Location.Name'Range loop
+            S (size_t (I)) := Interfaces.C.char (Current_Location.Name (I));
+         end loop;
+
+         Argv (0) := S.all'Address;
+      end;
+
+      declare
+         Read_First_Arg : Boolean := False;
+      begin
+         for Arg of Args loop
+            --  the first argument in this case will be
+            --  "asm," and irrelevant, so we will skip it
+            if not Read_First_Arg then
+               Read_First_Arg := True;
+               goto Loop_End;
+            end if;
+
+            exit when Argc = Argv'Last;
+
+            if Arg.Value = Str then
+               declare
+                  S : constant C_String_Access :=
+                     new C_String'(0 .. 255 => Interfaces.C.char'Val (0));
+               begin
+                  for I in Arg.Str_Val'Range loop
+                     S (size_t (I - 1)) := Interfaces.C.char (Arg.Str_Val (I));
+                  end loop;
+
+                  Argv (Natural (Argc)) := S.all'Address;
+                  Argc := Argc + 1;
+               end;
+            end if;
+
+            <<Loop_End>>
+         end loop;
+      end;
+
+      Argv (Natural (Argc)) := System.Null_Address;
+
       System.Machine_Code.Asm (
          "fence.i",
          Clobber => "memory",
          Volatile => True
       );
 
-      P.all;
+      P.all (Argc, Argv (Argv'First)'Address);
+
+      for Arg of Argv loop
+         declare
+            Str : C_String_Access := To_C_String_Access (Arg);
+         begin
+            Free (Str);
+         end;
+      end loop;
 
       return Ret_Void;
    end Run_Assembly;
