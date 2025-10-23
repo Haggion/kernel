@@ -1,6 +1,7 @@
 with Error_Handler; use Error_Handler;
 with Lines;
 with IO; use IO;
+with Interfaces; use Interfaces;
 
 package body CrOS_EC is
    function SPI_Transfer_Byte (Data : Byte) return Byte;

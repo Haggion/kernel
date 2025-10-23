@@ -3,22 +3,22 @@ with System.Unsigned_Types; use System.Unsigned_Types;
 package body Bitwise is
    function "and"(Left : Byte; Right : Integer) return Byte is
    begin
-      return Byte (Unsigned (Left) and Unsigned (Right));
+      return Byte (Left and Unsigned_8 (Right));
    end "and";
 
    function "and"(Left : Four_Bytes; Right : Integer) return Byte is
    begin
-      return Byte (Unsigned (Left) and Unsigned (Right));
+      return Byte (Left and Unsigned_32 (Right));
    end "and";
 
    function "or"(Left : Byte; Right : Integer) return Byte is
    begin
-      return Byte (Unsigned (Left) or Unsigned (Right));
+      return Byte (Left or Unsigned_8 (Right));
    end "or";
 
    function Get_Bit (Num : Byte; Bit : Natural) return Boolean is
    begin
-      return (Num and (2 ** Bit)) /= 0;
+      return (Num and Byte (2 ** Bit)) /= 0;
    end Get_Bit;
 
    function Set_Bit (Num : Byte; Bit : Natural; Value : Boolean) return Byte is

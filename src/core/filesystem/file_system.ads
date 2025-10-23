@@ -1,4 +1,5 @@
 with Bitwise; use Bitwise;
+with Interfaces; use Interfaces;
 
 package File_System is
    --  in bytes

@@ -1,9 +1,9 @@
 with Ada.Unchecked_Deallocation;
+with Interfaces; use Interfaces;
 
 package Bitwise is
-   type Four_Bytes is range 0 .. 2**32 - 1;
-   type Byte is range 0 .. 2 ** 8 - 1
-      with Size => 8;
+   subtype Four_Bytes is Unsigned_32;
+   subtype Byte is Unsigned_8;
 
    type Byte_Array is array (Natural range <>) of Byte
       with Component_Size => 8;

@@ -106,7 +106,9 @@ package Driver_Handler is
 
    --  storage drivers
    function Read_Block (Address : Unsigned) return File_System.Block_Bytes;
+   pragma Export (C, Read_Block, "read_block");
    procedure Write_Block (Address : Unsigned; Data : File_System.Block_Bytes);
+   pragma Export (C, Write_Block, "write_block");
 private
    --  UART drivers
    procedure QEMU_UART_Put_Char (Ch : Integer);

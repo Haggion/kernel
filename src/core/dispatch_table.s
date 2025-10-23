@@ -21,10 +21,10 @@ Address    Method
 0x85000084 _delay
 0x85000090 _allocate_memory
 0x8500009C _free_memory
-0x850000A8 _create_file
-0x850000B4 _read_file
-0x850000C0 _write_file
-0x850000CC _memcpy
+0x850000A8 read_block
+0x850000B4 write_block
+0x850000C0 _get_file_metadata
+0x850000CC 
 0x850000D8
 0x850000E4
 0x850000F0
@@ -53,3 +53,6 @@ make_jump _render_buffer_section
 make_jump delay_us
 make_jump malloc
 make_jump free
+make_jump read_block
+make_jump write_block
+make_jump _get_file_metadata

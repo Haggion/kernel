@@ -9,6 +9,7 @@ with System.Machine_Code;
 with Error_Handler; use Error_Handler;
 with File_System.Formatter;
 with Interfaces.C; use Interfaces.C;
+with Interfaces; use Interfaces;
 
 package body Console.Commands.FS is
    function List_Links (Args : Arguments) return Return_Data is
@@ -494,4 +495,9 @@ package body Console.Commands.FS is
       );
       return Ret_Void;
    end Format;
+
+   function Get_File_Metadata (Path : Line) return Search_Result is
+   begin
+      return Get_File_From_Path (Current_Location, Path);
+   end Get_File_Metadata;
 end Console.Commands.FS;

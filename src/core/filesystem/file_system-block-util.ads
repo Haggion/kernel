@@ -3,10 +3,11 @@ with Ada.Unchecked_Deallocation;
 
 package File_System.Block.Util is
    type Search_Result is record
-      Found_Result : Boolean := False;
       File : File_Metadata;
       Address : Storage_Address := 0;
-   end record;
+      Found_Result : Boolean := False;
+   end record
+   with Convention => C;
 
    function File_Name_To_Line (Name : File_Name) return Line;
    function Line_To_File_Name (Text : Line) return File_Name;

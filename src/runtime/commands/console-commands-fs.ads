@@ -25,4 +25,8 @@ package Console.Commands.FS is
    ) return Return_Data;
 
    function Format (Args : Arguments) return Return_Data;
+
+private
+   function Get_File_Metadata (Path : Line) return Search_Result;
+   pragma Export (C, Get_File_Metadata, "_get_file_metadata");
 end Console.Commands.FS;
