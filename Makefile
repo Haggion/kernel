@@ -1,5 +1,6 @@
-CLEAR ?= 0
+CLEAR  ?= 0
 TARGET ?= qemu
+ARCH   ?= riscv
 
 ELF := tmp/kernel.elf
 SRC := src
@@ -22,7 +23,7 @@ ADAPROJFLAGS := -gnatg -gnatA -gnatD -gnatec=src/gnat.adc -nostdlib
 ADA_SRC := $(shell find $(SRC) -type f -name '*.adb')
 ASM_SRC := $(shell find $(SRC) -type f -name '*.s')
 C_SRC := $(shell find $(SRC) -type f -name '*.c')
-ARCH_SRC := $(shell find architecture/$(TARGET) -type f -name '*.s')
+ARCH_SRC := $(shell find targets/$(TARGET) -type f -name '*.s')
 
 ADA_OBJ := $(foreach f,$(ADA_SRC), $(TMP)/ada/$(subst $(SRC)/,,$(f:.adb=.o)))
 C_OBJ   := $(foreach f,$(C_SRC),	  $(TMP)/c/$(subst $(SRC)/,,$(f:.c=.o)))
